@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AF023C87-4E6C-4CE2-B70C-F54C86DD8001}"
+	ProjectSection(SolutionItems) = preProject
+		packages\ClearScript.V8.5.3.10.0\tools\native\x86\ClearScriptV8-32.dll = packages\ClearScript.V8.5.3.10.0\tools\native\x86\ClearScriptV8-32.dll
+		packages\ClearScript.V8.5.3.10.0\tools\native\x86\v8-ia32.dll = packages\ClearScript.V8.5.3.10.0\tools\native\x86\v8-ia32.dll
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication2", "ConsoleApplication2\ConsoleApplication2.csproj", "{CB25B656-9EF5-4CDC-80A5-05E1231468CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearHost.NodeEmulation", "ClearHost.NodeEmulation\ClearHost.NodeEmulation.csproj", "{C13576A0-14F8-4DA3-A793-BB4EE7321EC4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CB25B656-9EF5-4CDC-80A5-05E1231468CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB25B656-9EF5-4CDC-80A5-05E1231468CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB25B656-9EF5-4CDC-80A5-05E1231468CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB25B656-9EF5-4CDC-80A5-05E1231468CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C13576A0-14F8-4DA3-A793-BB4EE7321EC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C13576A0-14F8-4DA3-A793-BB4EE7321EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C13576A0-14F8-4DA3-A793-BB4EE7321EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C13576A0-14F8-4DA3-A793-BB4EE7321EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
