@@ -23,7 +23,7 @@ namespace ClearHost.NodeEmulation
         {
               var action = new Action (() =>
                 {
-                    System.Diagnostics.Debug.WriteLine("yyy");
+                    
                     try
                     {
                         callback.call();
@@ -36,7 +36,7 @@ namespace ClearHost.NodeEmulation
 
              Task.Factory.StartNew(action);
             
-            System.Diagnostics.Debug.WriteLine("xxx");
+         
 
          //   t.Wait();
         }

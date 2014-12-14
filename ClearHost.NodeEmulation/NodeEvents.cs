@@ -9,38 +9,62 @@ using System.Collections.Generic;
 
 namespace ClearHost.NodeEmulation
 {
-    public class NodeEvents
+    public class CheapConsole
     {
-        public class NodeEventRequireModule
+        public void log(params object[] stuff)
         {
-            private Microsoft.ClearScript.V8.V8ScriptEngine _engine;
-            private dynamic _eventEmitter;
-
-            public NodeEventRequireModule(Microsoft.ClearScript.V8.V8ScriptEngine engine)
-            {
-                _engine = engine;
-            }
-
-            public dynamic EventEmitter
-            {
-                get
-                {
-                    if (_eventEmitter == null)
-                    {
-                        _eventEmitter = (dynamic)_engine.Evaluate("_x=function EventEmitter(){ return require('events');}; ");
-                    }
-                    return _eventEmitter;
-                }
-            }
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
         }
 
+        public void info(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+        public void warn(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+        public void error(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+        public void time(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+        public void timeEn(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+        public void trace(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+        public void assert(params object[] stuff)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
+
+        }
+
+    }
+
+    public class NodeEventEmitter
+    {
+        
+
         private Microsoft.ClearScript.V8.V8ScriptEngine _engine;
-        public NodeEvents(Microsoft.ClearScript.V8.V8ScriptEngine engine)
+        public NodeEventEmitter(Microsoft.ClearScript.V8.V8ScriptEngine engine)
         {
             _engine = engine;
         }
 
-        public NodeEvents()
+        public NodeEventEmitter()
         {
             int f = 0;
         }

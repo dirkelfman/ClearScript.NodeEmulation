@@ -1,6 +1,6 @@
 ﻿
 
-var rateProvider = require('./rateprovider').getRateProvider();
+var rateProvider = require('./rateprovider');
 //var process = require('process');
 
 var props = {};
@@ -8,8 +8,9 @@ var props = {};
 
 process.stdout.write('go...\r\n');
 var rp = rateProvider.getRatesAsync(props, function () {
-    process.stdout.write(props.joke);
-    process.stdout.write('\r\n');
+
+    console.log(props.joke);
+    
 })
 
 

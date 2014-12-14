@@ -11,15 +11,18 @@ module.exports = function(grunt) {
                 },
 
                 options: {
+            
+                    
+    
                     // pipeline: ['dedupe','debug'],
                     browserifyOptions: {
 
-                        standalone: 'bing',
+                        standalone:'food',
                         commondir: false,
-                       debug: true,
-                       
-                        builtins: ['events','stream','util','path','url','string_decoder','events','net','punycode','querystring'],
-                      
+                        debug: true,
+
+                        builtins: ['events', 'stream', 'util', 'path', 'url', 'string_decoder', 'events', 'net', 'punycode', 'querystring', 'dgram', 'dns', 'assert', 'tls'],
+
                         insertGlobals: '__filename,__dirname'
                     }
                 }
@@ -30,7 +33,8 @@ module.exports = function(grunt) {
 
 
     grunt.loadNpmTasks('grunt-browserify');
-    
-    grunt.registerTask('default', ['browserify:dist']);
-};
 
+    grunt.registerTask('default', ['browserify:dist']);
+
+     //grunt.registerTask('default', []);
+};

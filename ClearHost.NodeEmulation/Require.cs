@@ -4,6 +4,9 @@ using System.Configuration;
 using System.IO;
 
 using System.Dynamic;
+using System.Linq;
+using System.Runtime.Remoting.Messaging;
+using System.Text;
 using Microsoft.ClearScript.V8;
 using System;
 using Microsoft.ClearScript;
@@ -12,152 +15,67 @@ namespace ClearHost.NodeEmulation
 {
     public  class Require
     {
+        private readonly V8Runtime _runtime;
         private readonly V8ScriptEngine _engine;
-        private readonly string _path;
+        public dynamic BuiltIns { get; set; }
 
-        public Require(V8ScriptEngine engine, string path)
+        public Require(V8Runtime runtime , V8ScriptEngine engine)
         {
-            
+            _runtime = runtime;
             _engine = engine;
-            _path = path;
-            Init();
 
-            engine.Execute("Buffer=require('buffer').Buffer;");
-        }
-
-        private void Init()
-        {
+            engine.AddHostType("ccnetBuffer", typeof(NodeBuffer));
+            engine.AddHostType("ccnetHttpRequest", typeof(NodeHttpRequest));
             
-            _engine.AddHostObject("_require", new Func<string, object>(x => this.RequireScript(x)));
-            _engine.AddHostObject("_clearScriptConstruct", new Func<string, object>(x => this.Create(x)));
-            _engine.AddHostObject("console",new CheapConsole());
-            _engine.Execute("function require(x){return _require(x);}");
+            engine.AddHostType("ccNetEventEmitter", typeof(NodeEventEmitter));
+            engine.AddHostObject("util", new NodeUtil(engine));
+            _engine.AddHostObject("console", new CheapConsole());
             _engine.AddHostObject("process", new NodeProcess(_engine));
-        }
-
-        public object Create(string type, params object[] config)
-        {
-            return CreateRequreModule( type);
-        }
-
-        private Dictionary<string, object> _cache = new Dictionary<string, object>(); 
-        public object RequireScript(string script)
-        {
-            object dep;
-            if (_cache.TryGetValue(script, out dep))
-            {
-                return dep;
-            }
-            dep = CreateRequreModule(script);
-
-            _cache[script] = dep;
-            return dep;
-        }
-
-        public object CreateRequreModule(string script)
-        {
-            switch (script)
-            {
-                case "cc-http":
-                {
-                    return new NodeHttp();
-                    ;
-                }
-                case "cc-http-agent":
-                {
-                    return new NodeEvents(_engine);
-                }
-                case "fs":
-                {
-                    var fn = @"x=function(){
-   
-    return { readFileSync: function() { return '';}};
-}();
-";
-                    return _engine.Evaluate(fn);
-                }
-                case "https":
-                case "http":
-                {
-                    var fn = @"x=function(){
-    function Agent(){ return _clearScriptConstruct('cc-http-agent');};
-    function request(options,callback){ return _clearScriptConstruct('cc-http').request(options,callback);};
-    
-    return { Agent:Agent, request:request };
-}();
-";
-                    return _engine.Evaluate(fn);
-                   
-                }
-                case "util":
-                {
-                    return new NodeUtil(_engine);
-                }
-                case "cc-buffer":
-                {
-                    return new NodeBuffer();
-                }
-                case "buffer":
-                {
-                    
-                    var fn = @"x=function(){
-    function Buffer(){ return _clearScriptConstruct('cc-buffer');};
-    Buffer.isBuffer= function (buff){ return buff && buff.isBuffer ;};
-    Buffer.isEncoding=function(enc){ return true;};
-Buffer.concat=function(list,len){ return list.length ? list[0]: new Buffer();};
-    return { Buffer:Buffer  };
-}();
-";
-                    return _engine.Evaluate(fn);
-                    
-                }
-                   
-                case "_process":
-                case "process":
-                {
-                    return new NodeProcess(_engine);
-                }
-//                case "cc-events":
-//                {
-//                    return new NodeEvents(_engine);
-//                }
-//                case "events":
-//                {
-                   
-//                    var fn = @"x=function(){
-//    function EventEmitter(){ return _clearScriptConstruct('cc-events');};
-//    
-//    return { EventEmitter:EventEmitter };
-//}();
-//";
-                    
-                   
-//                    return _engine.Evaluate(fn);
-                    
-                
-                    
-
-//                }
-            }
-            System.Diagnostics.Debug.WriteLine(script);
-            return new PropertyBag();
             
-            var scriptFile = new FileInfo(_path + script);
-            object module = null;
+            using (var stream = this.GetType().Assembly.GetManifestResourceStream(this.GetType().Assembly.GetManifestResourceNames().First(x => x.Contains("modules.js"))))
+            {
+                var js = new StreamReader(stream).ReadToEnd();
+
+                BuiltIns = _engine.Evaluate(js);
+                BuiltIns.container.engine = engine;
+                BuiltIns.container.runtime = runtime;
+                BuiltIns.container.require = this;
+            }
+            engine.Execute("Buffer=require('buffer').Buffer;");
             
-
-            _engine.Evaluate(scriptFile.FullName, false, "module={};\r\n" + scriptFile.OpenText().ReadToEnd());
-            module = _engine.Script.module.exports;
-
-            return module;
+            
         }
-    }
 
-    public class CheapConsole
-    {
-        public void log(params object[] stuff)
+        public dynamic LoadModule(string src)
         {
-            System.Diagnostics.Debug.WriteLine(stuff);
+            
+            var sb = new StringBuilder("(function(){ module={}; exports={};");
+
+            sb.Append(src);
+            sb.Append(";return module;})();");
+            var code  = _runtime.Compile(src);
+            return ((dynamic)_engine.Evaluate(code)).exports;
         }
+
+        public dynamic LoadModuleByPath(string filePath)
+        {
+            var ms = new MemoryStream();
+            var text = System.Text.Encoding.UTF8.GetBytes("(function(){ module={}; exports={};");
+            ms.Write(text, 0, text.Length);
+            var file = new FileInfo(filePath);
+            using (var fs = file.OpenRead())
+            {
+                fs.CopyTo(ms);
+            }
+            text = System.Text.Encoding.UTF8.GetBytes(";return module})()");
+            ms.Write(text, 0, text.Length);
+            var fnTxt = System.Text.Encoding.UTF8.GetString(ms.ToArray());
+
+            var code = _runtime.Compile(fnTxt);
+            return ((dynamic) _engine.Evaluate(code)).exports;
+
+        }
+
+     
     }
 }

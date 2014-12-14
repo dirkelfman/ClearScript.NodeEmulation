@@ -57,9 +57,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Callbacker.cs" />
+    <Compile Include="DynamicObjectExtensions.cs" />
     <Compile Include="Globals.cs" />
+    <Compile Include="NodeBuffer.cs" />
     <Compile Include="NodeEvents.cs" />
-    <Compile Include="NodeHttp.cs" />
+    <Compile Include="NodeHttpRequest.cs" />
+    <Compile Include="NodeHttpResponse.cs" />
     <Compile Include="NodeProcess.cs" />
     <Compile Include="NodeUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,6 +76,9 @@
     <None Include="Licenses\v8.v8.license" />
     <None Include="Licenses\v8.valgrind.license" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="js\modules.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
