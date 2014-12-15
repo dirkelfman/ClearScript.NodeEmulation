@@ -17,7 +17,7 @@ module.exports = function(grunt) {
                     // pipeline: ['dedupe','debug'],
                     browserifyOptions: {
 
-                        standalone:'food',
+                        standalone: 'rateProvider',
                         commondir: false,
                         debug: true,
 
@@ -36,5 +36,5 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['browserify:dist']);
 
-     //grunt.registerTask('default', []);
+   //  grunt.registerTask('default', []);
 };

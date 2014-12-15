@@ -4,8 +4,16 @@ using System.IO;
 
 namespace ClearHost.NodeEmulation
 {
-    public class NodeBuffer 
+    public class NodeBuffer : NodeEventEmitter
     {
+
+        public bool isCCnetBuffer = true;
+
+        public virtual string clientWrapperClass
+        {
+            get { return "Buffer"; }
+        }
+
         public static bool isEncoding(string isEncoding)
         {
             System.Diagnostics.Debug.WriteLine("isEncoding", isEncoding);

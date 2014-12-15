@@ -11,7 +11,12 @@ using WebGrease.Css.Extensions;
 
 namespace ClearHost.NodeEmulation
 {
-    public class NodeHttpRequest 
+    public class NodeHttpsRequest : NodeHttpRequest
+    {
+
+    }
+
+    public class NodeHttpRequest :NodeEventEmitter
     {
         private HttpRequestMessage _requestMessage;
         //private NodeHttpRequestOptoins _options;
@@ -20,8 +25,9 @@ namespace ClearHost.NodeEmulation
         private Task<HttpResponseMessage> _responseTask;
         private Stream _requestStream;
         //private DynamicObject _callback;
-        private Dictionary<string, List<dynamic>> _listeners = new Dictionary<string, List<dynamic>>();
-
+      
+        public bool isCCnetHttpRequest = true;
+      
         public NodeHttpRequest(DynamicObject options = null, dynamic callback = null) 
         {
             _client = new HttpClient();
@@ -29,7 +35,7 @@ namespace ClearHost.NodeEmulation
 
             _options = options;
 
-
+            
             if (callback != null && !(callback is Microsoft.ClearScript.Undefined))
             {
                 this.@on("response", callback);
@@ -59,17 +65,7 @@ namespace ClearHost.NodeEmulation
         {
             
         }
-        public void on(string eventName, dynamic callbackFn)
-        {
-            //response
-            List<dynamic> events;
-            if (!_listeners.TryGetValue(eventName, out events))
-            {
-                events = _listeners[eventName] =  new List<dynamic>();
-            }
-           
-            events.Add(callbackFn);
-        }
+     
 
         public DynamicObject getHeaders()
         {
@@ -146,12 +142,12 @@ namespace ClearHost.NodeEmulation
             }
         }
 
-        public string Protocal = "http";
+        public string protocal = "http";
         public void end(NodeBuffer data = null, string encoding = null)
         {
             write(data, encoding);
             var uriBuilder = new UriBuilder(
-                this.Protocal,
+                this.protocal,
                 _options.GetField<string>("hostname") ?? _options.GetField<string>("host"),
                 _options.GetField<int>("port", new Func<object, int>(Convert.ToInt32), 80),
                 _options.GetField<string>("path")).Uri;
@@ -187,6 +183,7 @@ namespace ClearHost.NodeEmulation
 
         public void abort()
         {
+            throw new NotImplementedException();
             //do cancelation
         }
 
@@ -194,34 +191,13 @@ namespace ClearHost.NodeEmulation
         {
             var resp = responseTask.Result;
             List<dynamic> listeners;
-            if ( _listeners.TryGetValue("response", out listeners))
+            if (this.hasEvent("response"))
             {
                 NodeHttpResponse nodeResponse = new NodeHttpResponse(this, responseTask);
-
-                listeners.ForEach(listener =>
-                {
-                    if (listener is Action<NodeHttpResponse>)
-                    {
-                        ((Action<NodeHttpResponse>) listener)(nodeResponse);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            listener.call(null, nodeResponse);
-                        }
-                        catch (Exception ex)
-                        {
-                            throw;
-                        }
-
-                    }
-                    
-
-
-                });
+                this.emit("response", nodeResponse);
                 nodeResponse.InitEvents();
             }
+            
             return resp;
         }
     }

@@ -9,68 +9,21 @@ using System.Collections.Generic;
 
 namespace ClearHost.NodeEmulation
 {
-    public class CheapConsole
-    {
-        public void log(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-        }
-
-        public void info(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-        public void warn(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-        public void error(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-        public void time(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-        public void timeEn(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-        public void trace(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-        public void assert(params object[] stuff)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Join(", ", stuff));
-
-        }
-
-    }
-
     public class NodeEventEmitter
     {
-        
+        public bool isCCnetEventEmitter = true;
+        public bool isCCnet = true;
 
-        private Microsoft.ClearScript.V8.V8ScriptEngine _engine;
-        public NodeEventEmitter(Microsoft.ClearScript.V8.V8ScriptEngine engine)
-        {
-            _engine = engine;
-        }
+     
+        
 
         public NodeEventEmitter()
         {
-            int f = 0;
+      
         }
         private Dictionary<string, List<Tuple<dynamic,bool>>> _listeners = new Dictionary<string, List<Tuple<dynamic, bool>>>();
 
-        public void addListener(string eventName, DynamicObject listener)
+        public NodeEventEmitter addListener(string eventName, DynamicObject listener)
         {
             List<Tuple<dynamic,bool>>events;
             if (!_listeners.TryGetValue(eventName, out events))
@@ -79,11 +32,18 @@ namespace ClearHost.NodeEmulation
             }
 
             events.Add( new Tuple<dynamic, bool>(listener, false));
+            return this;
         }
 
-        public void on(string eventName, DynamicObject listener)
+        public bool hasEvent(string eventName)
         {
-            this.addListener(eventName, listener);
+            return this._listeners.ContainsKey(eventName);
+        }
+
+        public NodeEventEmitter on(string eventName, DynamicObject listener)
+        {
+            return this.addListener(eventName, listener);
+
         }
 
 
@@ -95,7 +55,43 @@ namespace ClearHost.NodeEmulation
             {
                 events.ForEach(listener =>
                 {
-                    listener.Item1.apply(null, args);
+                    if (args == null)
+                    {
+                        listener.Item1.call(null);
+                    }
+                    else if (args.Length == 1)
+                    {
+                        listener.Item1.call(null, args[0]);
+                    }
+                    else if (args.Length == 2)
+                    {
+                        listener.Item1.call(null, args[0], args[1]);
+                    }
+                    else if (args.Length == 3)
+                    {
+                        listener.Item1.call(null, args[0], args[1], args[2]);
+                    }
+                    else if (args.Length == 4)
+                    {
+                        listener.Item1.call(null, args[0], args[1], args[2], args[3]);
+                    }
+                    else if (args.Length == 5)
+                    {
+                        listener.Item1.call(null, args[0], args[1], args[2], args[3], args[4]);
+                    }
+                    else if ( args.Length> 5)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    
+                    //if (args.Length > 0)
+                    //{
+                    //    listener.Item1.call(null, args[0]);
+                    //}
+                    //else
+                    //{
+                    //    listener.Item1.apply(null, args);
+                    //}
                 });
                 events.Where(x=>x.Item2).ToList().ForEach(x=> events.Remove(x));
            
@@ -106,14 +102,6 @@ namespace ClearHost.NodeEmulation
 
         }
 
-//emitter.once(event, listener)
-//emitter.removeListener(event, listener)
-//emitter.removeAllListeners([event])
-//emitter.setMaxListeners(n)
-//emitter.listeners(event)
-//emitter.emit(event, [arg1], [arg2], [...])
-//Class Method: EventEmitter.listenerCount(emitter, event)
-//Event: 'newListener'
-//Event: 'removeListener'
+
     }
 }

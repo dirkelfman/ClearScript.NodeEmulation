@@ -14,8 +14,14 @@ namespace ClearHost.NodeEmulation
         private Task<HttpResponseMessage> resp;
         private bool _dataFired;
 
-        private Dictionary<string, List<dynamic>> _listeners = new Dictionary<string, List<dynamic>>();
 
+        public override string clientWrapperClass {
+            get { return "IncommingMessage"; }
+        }
+  
+        
+        public bool isCCnetHttpResponse = true;
+       
         public NodeHttpResponse(NodeHttpRequest nodeHttpRequest, Task<HttpResponseMessage> resp)
             : base((System.IO.MemoryStream)null)
         {
@@ -46,12 +52,7 @@ namespace ClearHost.NodeEmulation
         }
 
 
-        public bool isBuffer
-        {
-            get { 
-                return true; 
-            }
-        }
+      
         public void InitEvents()
         {
             this.resp.Result.Content.ReadAsStreamAsync().ContinueWith(x =>
@@ -63,65 +64,16 @@ namespace ClearHost.NodeEmulation
         public object body { get; set; }
         
         
-        public void on(string eventName, dynamic callbackFn)
-        {
        
-            List<dynamic> events;
-            if (!_listeners.TryGetValue(eventName, out events))
-            {
-                events = _listeners[eventName] =  new List<dynamic>();
-            }
-           
-            events.Add(callbackFn);
-        
-            //close
-            //readable
-            //data
-            //end
-            //error
-
-
-       
-           
-        }
 
 
         //todo .. rework as chunked
         void OnData( )
         {
-
-
-
+            this.emit("data", this);
+            this.emit("end", null);
             
             
-            List<dynamic> listeners;
-            if (_listeners.TryGetValue("data", out listeners))
-            {
-                var helper = (dynamic)this.nodeHttpRequest.require.BuiltIns.httpHelper;
-                var buffer = helper.createIncomingMessage.call(null, this);
-
-               
-                listeners.ForEach(listener =>
-                {
-                    listener.call(null, buffer);
-                });
-            }
-            if (_listeners.TryGetValue("end", out listeners))
-            {
-
-                listeners.ForEach(listener =>
-                {
-                    try
-                    {
-                        listener.call(null);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw;
-                    }
-                });
-            }
-           
         }
         public string httpVersion { get; set; }
         public dynamic headers { get; set; }
