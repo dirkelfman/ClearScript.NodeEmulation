@@ -19,30 +19,33 @@
         engine: null,
         require: null
     };
-    var classes={};
+    var classes = {};
 
     function EventEmitter() {
         this.ccInner = new ccNetEventEmitter();
     }
-    EventEmitter.prototype.on = function (event, listner) {
+    EventEmitter.prototype.on = function(event, listner) {
 
-        this.ccInner.on(event, function () {
-          
+        this.ccInner.on(event, function() {
+
+            debugger;
             var arrArray = Array.prototype.slice.call(arguments, 0);
-            for ( var i = 0; i < arrArray.length ; i++){
-                if ( arrArray[i].clientWrapperClass)
-                {
-                    arrArray[i]  = new classes[arrArray[i].clientWrapperClass](arrArray[i]);
+            for (var i = 0; i < arrArray.length; i++) {
+                if (arrArray[i].clientWrapperClass) {
+                    arrArray[i] = new classes[arrArray[i].clientWrapperClass](arrArray[i]);
                 }
             }
-               
+
             listner.apply(arguments.callee, arrArray);
-           
+
 
             return this;
         });
-       
+
     };
+
+
+    EventEmitter.prototype.addListener = EventEmitter.prototype.on;
 
     EventEmitter.prototype.once = function(event, listner) {
         return this.ccInner.once(event, listner);
@@ -99,13 +102,16 @@
 
     }
 
+
+
     function request(options, callback) {
         return new Request(options, callback);
     }
 
     function httpsRequest(options, callback) {
         var req = new Request(options, callback);
-        req.protocal = 'https';
+        req.ccInner.protocal = 'https';
+        return req;
     }
 
 
@@ -120,9 +126,9 @@
 
     Request.prototype.write = function(chunk, encoding) {
         chunk = !chunk ? null : chunk.ccInner ? chunk.ccInner : chunk;
-        return this.ccInner.write(chunk, encoding || null);
+        return this.ccInner.write(chunk, encoding || null);h
     };
-  
+
 
     Request.prototype.end = function(chunk, encoding) {
         chunk = !chunk ? null : chunk.ccInner ? chunk.ccInner : chunk;
@@ -132,7 +138,7 @@
         return this.ccInner.abort();
     };
 
-    
+
 
 
     Request.prototype.setTimeout = function(timeout, callback) {
@@ -146,7 +152,7 @@
         this.ccInner = ccInner;
         //this.httpVersion = ccInner.httpVersion;
         this.headers = ccInner.headers;
-        this.statusCode = ccInner.status;
+        this.statusCode = ccInner.statusCode;
         this.isBuffer = true;
         this.length = ccInner.length;
     }
@@ -217,12 +223,27 @@
     classes.EventEmitter = EventEmitter;
 
 
+    var process = {
+        nextTick: function(callback) {
+            if (!process.ccProcess) {
+                process.ccProcess = new ccnetProcess();
+            }
+            process.ccProcess.nextTick(function(){
+                callback();
+            });
+        },
+        env: {}
+    };
+
+
+
+
     var modules = {
         container: container,
         require: function(id) {
 
             var mod = modules[id];
-            if (!mod ) {
+            if (!mod) {
                 console.error(id + ' not found');
             }
             return mod;
@@ -243,6 +264,7 @@
         zlib: {
 
         },
+       
         process: process,
         _process: process,
         util: util,
@@ -260,13 +282,13 @@
             request: request,
             STATUS_CODES: STATUS_CODES
         },
-        https : {
+        https: {
             Agent: Agent,
             request: httpsRequest,
             get: httpsRequest
         }
     };
-   
+
     return modules;
 
 })();

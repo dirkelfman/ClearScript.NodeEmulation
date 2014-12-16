@@ -76,9 +76,14 @@ namespace ClearHost.NodeEmulation
         public  string toString(object enc = null ,int? start = null , int? end= null)
         {
             string encoding = null;
-            long pos = this.InnerStream.Position;
-            this.InnerStream.Position = 0;
+            long pos = 0;
             string ret = null;
+            if (this.InnerStream.CanSeek)
+            {
+                pos = this.InnerStream.Position;
+                this.InnerStream.Position = 0;
+               
+            }
             if (string.IsNullOrWhiteSpace(encoding))
             {
                 ret= new StreamReader(this.InnerStream, true ).ReadToEnd();
@@ -87,8 +92,10 @@ namespace ClearHost.NodeEmulation
             {
                 ret= new StreamReader(this.InnerStream, System.Text.Encoding.GetEncoding(encoding)).ReadToEnd();
             }
-            
-            this.InnerStream.Position = pos;
+            if (this.InnerStream.CanSeek)
+            {
+                this.InnerStream.Position = pos;
+            }
             return ret;
 
         }
@@ -99,9 +106,20 @@ namespace ClearHost.NodeEmulation
            
         }
 
-        public  virtual long length
-        {
-            get { return InnerStream.Length; }
+        private long? _length;
+        
+        public  virtual long length {
+
+            get
+            {
+                if (_length.HasValue)
+                {
+                    return _length.Value;
+                }
+                return 1024*4;
+
+            }
+            set { _length = value; }
         }
 
 

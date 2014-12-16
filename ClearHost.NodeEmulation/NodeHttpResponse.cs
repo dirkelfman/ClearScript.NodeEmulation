@@ -109,15 +109,15 @@ namespace ClearHost.NodeEmulation
         {
             get
             {
-                if (this.resp.IsCompleted&& this.resp.Result.Content!= null)
+                if (this.resp.IsCompleted && this.resp.Result.Content != null && this.resp.Result.Content.Headers.ContentLength.HasValue)
                 {
-                    return this.resp.Result.Content.Headers.ContentLength.GetValueOrDefault();
+                    return this.resp.Result.Content.Headers.ContentLength.Value;
                 }
-                if (this.InnerStream != null)
+                if (this.InnerStream != null && this.InnerStream.CanSeek)
                 {
                     return InnerStream.Length;
                 }
-                return 0;
+                return 1024*4;
             }
         }
         

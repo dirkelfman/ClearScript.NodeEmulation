@@ -11,12 +11,12 @@ namespace ClearHost.NodeEmulation
 {
     public class NodeProcess
     {
-        private readonly V8ScriptEngine _engine;
+       
 
-        public NodeProcess(Microsoft.ClearScript.V8.V8ScriptEngine engine)
+        public NodeProcess()
         {
-            _engine = engine;
-            this.env = new PropertyBag();
+         
+          
         }
 
         public void nextTick(dynamic callback)
@@ -41,11 +41,5 @@ namespace ClearHost.NodeEmulation
          //   t.Wait();
         }
 
-        private PropertyBag _env;
-        public PropertyBag env
-        {
-            get { return this._env; }
-            set { _env = value; }
-        }
     }
 }

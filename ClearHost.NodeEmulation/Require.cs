@@ -26,11 +26,11 @@ namespace ClearHost.NodeEmulation
 
             engine.AddHostType("ccnetBuffer", typeof(NodeBuffer));
             engine.AddHostType("ccnetHttpRequest", typeof(NodeHttpRequest));
-            
+            _engine.AddHostType("ccnetProcess", typeof(NodeProcess));
             engine.AddHostType("ccNetEventEmitter", typeof(NodeEventEmitter));
             engine.AddHostObject("util", new NodeUtil(engine));
             _engine.AddHostObject("console", new CheapConsole());
-            _engine.AddHostObject("process", new NodeProcess(_engine));
+            
             
             using (var stream = this.GetType().Assembly.GetManifestResourceStream(this.GetType().Assembly.GetManifestResourceNames().First(x => x.Contains("modules.js"))))
             {
@@ -42,7 +42,8 @@ namespace ClearHost.NodeEmulation
                 BuiltIns.container.require = this;
             }
             engine.Execute("Buffer=require('buffer').Buffer;");
-            
+            engine.Execute("process=require('process');");
+           // engine.Execute("setTimeout=require('process').setTimeout;");
             
         }
 

@@ -161,8 +161,15 @@ namespace ClearHost.NodeEmulation
                     var val = headers.GetField<object>(key);
                     if (val != null)
                     {
-                        _requestMessage.Headers.TryAddWithoutValidation(key, new string[] {val.ToString()});   
+                        var headerVal = new string[] {val.ToString()};
+                        if (!_requestMessage.Headers.TryAddWithoutValidation(key, headerVal) && 
+                            _requestMessage.Content != null && 
+                            !string.Equals(key,"Content-Length", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _requestMessage.Content.Headers.TryAddWithoutValidation(key, headerVal);
+                        }
                     }
+                   
                 });
                
 
@@ -175,8 +182,9 @@ namespace ClearHost.NodeEmulation
 
 
             _requestMessage.Method =  new HttpMethod(_options.GetField("method", "GET"));
+           
             //todo set up cancel optons
-            _responseTask = _client.SendAsync(this._requestMessage)
+            _responseTask = _client.SendAsync(this._requestMessage,HttpCompletionOption.ResponseHeadersRead)
                 .ContinueWith<HttpResponseMessage>(OnResponse);
 
         }

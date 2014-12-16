@@ -83,7 +83,7 @@ namespace ConsoleApplication2
         {
 
             var require = new Require(runtime, engine);
-            
+            require.BuiltIns.process.env.NODE_DEBUG = "request";
             var file = new System.IO.FileInfo(Environment.CurrentDirectory + @"..\..\..\js\rateProvider.built.js");
             if (!file.Exists)
             {
