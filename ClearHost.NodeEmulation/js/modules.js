@@ -95,7 +95,7 @@ var builtinModules = (function() {
         return this.ccInner.copy(target, target_start, start, end);
     };
     Buffer.prototype.toString = function(encoding, start, end) {
-        return this.ccInner.toString(encoding || null, start || null, end || null);
+        return this.ccInner.StupidToString(encoding || null, start || null, end || null);
     };
 
     function Agent() {

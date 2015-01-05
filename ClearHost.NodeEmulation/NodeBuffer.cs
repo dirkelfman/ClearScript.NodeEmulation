@@ -73,6 +73,14 @@ namespace ClearHost.NodeEmulation
 
 
         public Stream InnerStream { get; set; }
+
+      
+
+        public string StupidToString(object enc = null, int? start = null, int? end = null)
+        {
+            return this.toString(enc, start, end);
+        }
+
         public  string toString(object enc = null ,int? start = null , int? end= null)
         {
             string encoding = null;
