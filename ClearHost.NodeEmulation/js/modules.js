@@ -149,16 +149,19 @@ var builtinModules = (function() {
     };
 
 
-    function Timers () {
-        this.ccInner = new ccnetTimers();
+    
+    var ccnetTimersInstance = new ccnetTimers();
+    
+    var timers  = {
+        setTimeout : function () {
+            var args = Array.prototype.slice(arguments, 2);
+            var callback = arguments[0];
+            var delay = arguments[1];
+            return ccnetTimersInstance.setTimeout(callback, delay, args);
+        }
     }
-
-    Timers.prototype.setTimeout = function () {
-        var args = Array.prototype.slice(arguments, 2);
-        var callback = arguments[0];
-        var delay = arguments[1];
-        return this.ccInner.setTimeout(callback, delay , args);
-    };
+    debugger;
+    
 
 
 
@@ -248,9 +251,7 @@ var builtinModules = (function() {
         },
         env: {}
     };
-    debugger;
-    var timers = new Timers();
-
+    
 
 
     var modules = {

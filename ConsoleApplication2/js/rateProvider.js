@@ -28,43 +28,37 @@ RateProvider.prototype.getRatesAsync = function (props, callback) {
 
     var request = require('request');
 
-    var client = require('mozu-javascript-sdk').client({
-        'appId': 'd4e9bb5.steve.1.0.0.release',
-        'sharedSecret': '5d8cb5f6275b4a4bbd6a9e32557bb9be',
-        'baseUrl': 'https://home.mozu.com/',
+    //var client = require('mozu-javascript-sdk').client({
+    //    'appId': 'd4e9bb5.steve.1.0.0.release',
+    //    'sharedSecret': '5d8cb5f6275b4a4bbd6a9e32557bb9be',
+    //    'baseUrl': 'https://home.mozu.com/',
 
-        'tenant': 3696,
-        'master-catalog': 1,
-        'tenantPod': 'https://t3696.sandbox.mozu.com'
-    });
+    //    'tenant': 3696,
+    //    'master-catalog': 1,
+    //    'tenantPod': 'https://t3696.sandbox.mozu.com'
+    //});
 
-    debugger;
-    client.commerce().catalog().admin().product().getProducts().then(function () {
+    //debugger;
+    //client.commerce().catalog().admin().product().getProducts().then(function () {
 
-        console.log(arguments);
-        callback();
-    });
+    //    console.log(arguments);
+    //    callback();
+    //});
 
 
-    // request.get({
-    //     uri:'http://purrfectcatnames.com/wp-content/uploads/2013/11/Gray-Cat-MorgueFile-Nov16th-2013.jpg'
-    // },function (error, response, body) {
-    //  callback();
-    // });
+     request.debug = true;
+     request.post({
+       
+         uri: 'http://restmirror.appspot.com/',
+         json: true,
+         body:{ joke:'hahaha'},
+        // json:true
+     }, function (error, response, body) {
 
-    // request.debug = true;
-    // request.post({
-    //     proxy:'http://127.0.0.1:8888',
-    //     uri: 'http://restmirror.appspot.com/',
-    //     json: true,
-    //     body:{ joke:'hahaha'},
-    //    // json:true
-    // }, function (error, response, body) {
+         props.joke = body.joke;
 
-    //     props.joke = body.joke;
-
-    //     callback();
-    // });
+         callback();
+     });
 
     //request({
     //    uri: 'http://www.omdbapi.com/?t=star%20wars&y=&plot=short&r=json',

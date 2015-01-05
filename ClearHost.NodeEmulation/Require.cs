@@ -27,7 +27,7 @@ namespace ClearHost.NodeEmulation
             engine.AddHostType("ccnetBuffer", typeof(NodeBuffer));
             engine.AddHostType("ccnetHttpRequest", typeof(NodeHttpRequest));
             _engine.AddHostType("ccnetProcess", typeof(NodeProcess));
-            _engine.AddHostType("ccnetTimers", typeof(NodeProcess));
+            _engine.AddHostType("ccnetTimers", typeof(NodeTimers));
              
             engine.AddHostType("ccNetEventEmitter", typeof(NodeEventEmitter));
             engine.AddHostObject("util", new NodeUtil(engine));
