@@ -1,7 +1,15 @@
-function RateProvider() {
+function RateProvider () {
+}
+
+RateProvider.prototype.afterGetValues= function ( ctx, res )
+	{
+		res.Add(new Date().toString());
+	};
 
 
-    this.getRates = function(rateDictionary) {
+
+
+RateProvider.prototype.getRates = function(rateDictionary) {
         var rateCollection = rateDictionary.rateCollection;
         rateCollection.Add({
             id: 'foo',
@@ -16,38 +24,63 @@ function RateProvider() {
         return rateCollection;
     };
 
-    this.getRatesAsync = function(props, callback) {
+RateProvider.prototype.getRatesAsync = function (props, callback) {
 
-        var request = require('request');
-        request.debug = true;
-        request.post({
-            proxy:'http://127.0.0.1:8888',
-            uri: 'http://restmirror.appspot.com/',
-            json: true,
-            body:{ joke:'hahaha'},
-           // json:true
-        }, function (error, response, body) {
-          
-            props.joke = body.joke;
-            
-            callback();
-        });
+    var request = require('request');
 
-        //request({
-        //    uri: 'http://www.omdbapi.com/?t=star%20wars&y=&plot=short&r=json',
-        //    json:true
-        //}, function(error, response, body) {
-        //    if (!error && response.statusCode == 200) {
-        //        //console.log(body); // Print the google web page.
-        //        props.joke = body.Actors;
-        //        callback();
-        //    }
-        //});
-    };
+    var client = require('mozu-javascript-sdk').client({
+        'appId': 'd4e9bb5.steve.1.0.0.release',
+        'sharedSecret': '5d8cb5f6275b4a4bbd6a9e32557bb9be',
+        'baseUrl': 'https://home.mozu.com/',
+
+        'tenant': 3696,
+        'master-catalog': 1,
+        'tenantPod': 'https://t3696.sandbox.mozu.com'
+    });
+
+    debugger;
+    client.commerce().catalog().admin().product().getProducts().then(function () {
+
+        console.log(arguments);
+        callback();
+    });
+
+
+    // request.get({
+    //     uri:'http://purrfectcatnames.com/wp-content/uploads/2013/11/Gray-Cat-MorgueFile-Nov16th-2013.jpg'
+    // },function (error, response, body) {
+    //  callback();
+    // });
+
+    // request.debug = true;
+    // request.post({
+    //     proxy:'http://127.0.0.1:8888',
+    //     uri: 'http://restmirror.appspot.com/',
+    //     json: true,
+    //     body:{ joke:'hahaha'},
+    //    // json:true
+    // }, function (error, response, body) {
+
+    //     props.joke = body.joke;
+
+    //     callback();
+    // });
+
+    //request({
+    //    uri: 'http://www.omdbapi.com/?t=star%20wars&y=&plot=short&r=json',
+    //    json:true
+    //}, function(error, response, body) {
+    //    if (!error && response.statusCode == 200) {
+    //        //console.log(body); // Print the google web page.
+    //        props.joke = body.Actors;
+    //        callback();
+    //    }
+    //});
+
 
     //request({
     //    url: 'http://www.omdbapi.com/?t=star%20wars&y=&plot=short&r=json',
-    //    method: "GET",
+    //    method: 'GET',
     //    timeout: 10000,
     //    followRedirect: true,
     //    maxRedirects: 10,
@@ -57,14 +90,17 @@ function RateProvider() {
     //   // props.thing = body.actors;
     //    callback();
     //});
-
 }
-
-
+debugger;
 
 var rateProvider = {
     RateProvider: RateProvider,
-    getRatesAsync: new RateProvider().getRatesAsync
+    getRatesAsync: new RateProvider().getRatesAsync,
+    afterGetValues: new RateProvider().afterGetValues,
+    doit: function (stuff) {
+        debugger;
+        return Object.create(stuff.prototype);
+    }
 
 };
 

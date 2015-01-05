@@ -19,11 +19,11 @@ module.exports = function(grunt) {
 
                         standalone: 'rateProvider',
                         commondir: false,
-                        debug: true,
+                        //debug: true,
 
                         builtins: ['events', 'stream', 'util', 'path', 'url', 'string_decoder', 'events', 'net', 'punycode', 'querystring', 'dgram', 'dns', 'assert', 'tls'],
 
-                        insertGlobals: '__filename,__dirname'
+                       // insertGlobals: '__filename,__dirname'
                     }
                 }
             }
@@ -32,9 +32,9 @@ module.exports = function(grunt) {
     });
 
 
-    grunt.loadNpmTasks('grunt-browserify');
+   grunt.loadNpmTasks('grunt-browserify');
 
-    grunt.registerTask('default', ['browserify:dist']);
+ //   grunt.registerTask('default', ['browserify:dist']);
 
-   //  grunt.registerTask('default', []);
+     grunt.registerTask('default', []);
 };

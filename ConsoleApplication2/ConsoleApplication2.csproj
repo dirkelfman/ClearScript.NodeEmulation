@@ -33,8 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClearScript">
-      <HintPath>..\packages\ClearScript.V8.5.3.10.0\lib\ClearScript.dll</HintPath>
+    <Reference Include="ClearScript, Version=5.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ClearScript.Installer.1.0.2.24298\lib\net45\ClearScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,12 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="js\mozu.config.json" />
     <None Include="js\package.json" />
-    <None Include="Licenses\ClearScript.main.license" />
-    <None Include="Licenses\v8.main.license" />
-    <None Include="Licenses\v8.strongtalk.license" />
-    <None Include="Licenses\v8.v8.license" />
-    <None Include="Licenses\v8.valgrind.license" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -65,23 +62,43 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ClearScriptV8-32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ClearScriptV8-32.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ClearScriptV8-64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ClearScriptV8-64.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="js\rateProvider.js" />
     <Content Include="js\gruntfile.js" />
     <Content Include="js\test.js" />
+    <Content Include="v8-ia32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="v8-ia32.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="v8-x64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="v8-x64.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-if not exist "$(TargetDir)" md "$(TargetDir)"
-xcopy /s /y "$(SolutionDir)packages\ClearScript.V8.5.3.10.0\tools\native\x86\*.*" "$(TargetDir)"
-if not exist "$(TargetDir)" md "$(TargetDir)"
-xcopy /s /y "$(SolutionDir)packages\ClearScript.V8.5.3.10.0\tools\native\amd64\*.*" "$(TargetDir)"
-
-cd $(ProjectDir)\js
+    <PostBuildEvent>cd $(ProjectDir)\js
 
 if not exist "$(ProjectDir)\js\node_modules" npm install
 
 grunt
+
+
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

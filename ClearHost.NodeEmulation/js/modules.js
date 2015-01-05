@@ -1,4 +1,5 @@
-﻿var builtinModules = (function() {
+﻿/* global  ccNetEventEmitter,ccnetTimers,ccnetBuffer,ccnetHttpRequest,ccnetProcess, util */
+var builtinModules = (function() {
 
     // function ccnetBuffer() {}
 
@@ -28,7 +29,6 @@
 
         this.ccInner.on(event, function() {
 
-            debugger;
             var arrArray = Array.prototype.slice.call(arguments, 0);
             for (var i = 0; i < arrArray.length; i++) {
                 if (arrArray[i].clientWrapperClass) {
@@ -84,7 +84,7 @@
     Buffer.concat = function(list) {
         return list.length ? list[0] : new Buffer();
     };
-    Buffer.isEncoding = function(enc) {
+    Buffer.isEncoding = function() {
         return true;
     };
 
@@ -126,7 +126,7 @@
 
     Request.prototype.write = function(chunk, encoding) {
         chunk = !chunk ? null : chunk.ccInner ? chunk.ccInner : chunk;
-        return this.ccInner.write(chunk, encoding || null);h
+        return this.ccInner.write(chunk, encoding || null);
     };
 
 
@@ -147,6 +147,20 @@
     Request.prototype.setNoDelay = function(nodelay) {
         return this.ccInner.setNoDelay(nodelay);
     };
+
+
+    function Timers () {
+        this.ccInner = new ccnetTimers();
+    }
+
+    Timers.prototype.setTimeout = function () {
+        var args = Array.prototype.slice(arguments, 2);
+        var callback = arguments[0];
+        var delay = arguments[1];
+        return this.ccInner.setTimeout(callback, delay , args);
+    };
+
+
 
     function IncommingMessage(ccInner) {
         this.ccInner = ccInner;
@@ -234,7 +248,8 @@
         },
         env: {}
     };
-
+    debugger;
+    var timers = new Timers();
 
 
 
@@ -264,9 +279,9 @@
         zlib: {
 
         },
-       
+        timers: timers,
         process: process,
-        _process: process,
+        _process: process, 
         util: util,
         buffer: {
             Buffer: Buffer,
@@ -293,4 +308,4 @@
 
 })();
 require = builtinModules.require;
-x = builtinModules;
+builtinModules = builtinModules;

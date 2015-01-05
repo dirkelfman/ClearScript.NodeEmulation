@@ -1,0 +1,12 @@
+{
+  "name": "asdfsdf",
+  "dependencies": {
+    
+    "request":  "~*"
+  },
+  "main": "go",
+  "devDependencies": {
+    "grunt": "~*",
+    "grunt-browserify": "~*"
+  }
+}

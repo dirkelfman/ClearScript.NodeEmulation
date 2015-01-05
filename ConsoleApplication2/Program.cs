@@ -43,12 +43,8 @@ namespace ConsoleApplication2
         private static void Main(string[] args)
         {
             var c = new V8RuntimeConstraints();
-                    //{
-                    //    MaxExecutableSize = 1024*1024,
-                    //    MaxOldSpaceSize = 1024 * 1024,
-                    //    MaxYoungSpaceSize = 1024 * 1024
-                    //};
-            var runtime = new V8Runtime("fred", V8RuntimeFlags.EnableDebugging , 9222);
+                  
+            var runtime = new V8Runtime("fred", V8RuntimeFlags.EnableDebugging, 5858);
             var engine = runtime.CreateScriptEngine();
 
 
@@ -93,7 +89,8 @@ namespace ConsoleApplication2
 
 
 
-            var provider = require.LoadModuleByPath(file.FullName);
+
+            var module = require.LoadModuleByPath(file.FullName);
 
            // var rateProvider = rateProviderFactory.getRateProvider();
 
@@ -101,7 +98,12 @@ namespace ConsoleApplication2
             var cb = new CallBacker();
             var pb = new PropertyBag();
 
-            provider.getRatesAsync(pb, cb.Callback);
+
+            var bing = engine.Script.Object.create(module.RateProvider.prototype);
+
+
+            bing.getRatesAsync(pb, cb.Callback);
+          //  provider.getRatesAsync(pb, cb.Callback);
             cb.T.Wait();
             var joke = pb["joke"];
             Console.WriteLine(joke);
