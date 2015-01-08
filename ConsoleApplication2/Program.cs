@@ -6,9 +6,12 @@ using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using ClearScript.Manager;
 
 namespace ConsoleApplication2
 {
@@ -42,40 +45,87 @@ namespace ConsoleApplication2
 
         private static void Main(string[] args)
         {
-            var c = new V8RuntimeConstraints();
-                  
-            var runtime = new V8Runtime("fred", V8RuntimeFlags.EnableDebugging, 5858);
-            var engine = runtime.CreateScriptEngine();
+            //var managerPool = new ManagerPool(new ManagerSettings());
+            var settings = new ManagerSettings()
+                           {
 
+                           };
+            //ManagerPool.InitializeCurrentPool(new ManualManagerSettings()
+            //                                  {
+            //                                      V8DebugEnabled = true,
+            //                                      V8DebugPort = 5858
+            //                                  });
+            ManagerPool.InitializeCurrentPool(new ManagerSettings()
+                                              {
 
-        
+                                              });
+
+            for (int i = 0; i < 7; i++)
+            {
+                Task t = new Task(()=> main2());
+                t.Start();
+            }
+            Console.ReadLine();
+            //Console.WriteLine("gcing");
+
+        }
+
+        private static int cnt = 0;
+        static void main2()
+        {
+        //var engine = runtime.CreateScriptEngine();
+
+            var heapSize = new UIntPtr(90000000);
             
             while (true)
             {
+                using (var scope = new ManagerScope())
+                {
+                    var runtime = scope.RuntimeManager;
+                    V8ScriptEngine engine = runtime.GetEngine(); ;
 
-               
-                try
-                {
 
-                    TryIt(runtime,engine);
+
+
+
+                    if (engine.MaxRuntimeHeapSize !=  heapSize)
+                    {
+                        engine.MaxRuntimeHeapSize = heapSize;
+                    }
+                    //var heapinfo = engine.GetRuntimeHeapInfo();
+
+
+                    //if (heapinfo.TotalHeapSize > 100000000)
+                    //{
+                    //    Console.WriteLine("{0} {1} {2}", heapinfo.TotalHeapSize , heapinfo.TotalHeapSizeExecutable, heapinfo.UsedHeapSize);
+                    //    engine.CollectGarbage(false);
+                    //    heapinfo = engine.GetRuntimeHeapInfo();
+                    //    Console.WriteLine("{0} {1} {2}", heapinfo.TotalHeapSize, heapinfo.TotalHeapSizeExecutable, heapinfo.UsedHeapSize);
+                    //    engine.MaxRuntimeHeapSize = new UIntPtr(90000000);
+                    //}
+                    try
+                    {
+
+                        TryIt(runtime, engine);
+                    }
+                    catch (ScriptEngineException see)
+                    {
+                        System.Diagnostics.Debug.WriteLine(see.Message);
+                        System.Diagnostics.Debug.WriteLine(see.ErrorDetails);
+                        int f = 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex);
+                        int f = 0;
+                    }
+                   
                 }
-                catch (ScriptEngineException see)
-                {
-                    System.Diagnostics.Debug.WriteLine(see.Message);
-                    System.Diagnostics.Debug.WriteLine(see.ErrorDetails);
-                    int f = 0;
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex);
-                    int f = 0;
-                }
-                
                 int fg = 0;
             }
         }
 
-        static void TryIt(V8Runtime runtime, V8ScriptEngine engine)
+        static void TryIt(IRuntimeManager runtime, V8ScriptEngine engine)
         {
 
             var require = new Require(runtime, engine);
@@ -106,12 +156,21 @@ namespace ConsoleApplication2
           //  provider.getRatesAsync(pb, cb.Callback);
             cb.T.Wait();
             var joke = pb["joke"];
-            Console.WriteLine(joke);
-        }
-        
-          
+            if (Sstopwatch == null)
+            {
+                Sstopwatch = new Stopwatch();
+                Sstopwatch.Start();
+            }
 
-        
+            cnt ++;
+            var totsSecs = (cnt*1000 )/(Sstopwatch.ElapsedMilliseconds) ;
+            Console.WriteLine("{0} a sec" , totsSecs);
+        }
+
+        private static Stopwatch Sstopwatch = null;
+
+
+
     }
    
 }

@@ -9,47 +9,56 @@ using System.Net.Http;
 using System.Runtime.Remoting.Contexts;
 using System.Web.Http;
 using System.Web.Http.Filters;
+using ClearScript.Manager;
 
 namespace MvcApplication1
 {
 
     public class FooAttribute : Attribute, IActionFilter
     {
-        private V8Runtime runtime;
-        private V8ScriptEngine engine;
+       // private V8Runtime runtime;
+      //  private V8ScriptEngine engine;
         public FooAttribute()
         {
-            var c = new V8RuntimeConstraints();
+            ManagerPool.InitializeCurrentPool(new ManualManagerSettings()
+            {
+                V8DebugEnabled = true,
+                V8DebugPort = 5858
+            });
 
-            runtime = new V8Runtime("fred", V8RuntimeFlags.EnableDebugging, 5858);
-            engine = runtime.CreateScriptEngine();
+           // engine = runtime.CreateScriptEngine();
            
 
         }
 
         async System.Threading.Tasks.Task<HttpResponseMessage>  IActionFilter.ExecuteActionFilterAsync(System.Web.Http.Controllers.HttpActionContext actionContext, System.Threading.CancellationToken cancellationToken, Func<System.Threading.Tasks.Task<HttpResponseMessage>> continuation)
         {
-            var require = new Require(runtime, engine);
-            var file = new System.IO.FileInfo( HostingEnvironment.ApplicationPhysicalPath +   @"\js\actionFilters.built.js");
-          
-            var modlue = require.LoadModuleByPath(file.FullName);
-
-            //var proto = modlue.ActionFilters.prototype;
-            var filters = modlue;
-              
-         
-            var res= await continuation();
-            var content = res.Content as ObjectContent;
-            var strings = content.Value as IEnumerable<string>;
-            if (strings != null)
+            using (var scope = new ManagerScope())
             {
-                List<string> newStrings  = new List<string>(strings);
-                filters.afterGetValues(actionContext, newStrings);
-                //newStrings.Add("asdf");
-                content.Value = newStrings;
+                var runtime = scope.RuntimeManager;
+                var engine = runtime.GetEngine();
+                var require = new Require(runtime, engine);
+                var file = new System.IO.FileInfo(HostingEnvironment.ApplicationPhysicalPath + @"\js\actionFilters.built.js");
+
+                var modlue = require.LoadModuleByPath(file.FullName);
+
+                //var proto = modlue.ActionFilters.prototype;
+                var filters = modlue;
+
+
+                var res = await continuation();
+                var content = res.Content as ObjectContent;
+                var strings = content.Value as IEnumerable<string>;
+                if (strings != null)
+                {
+                    List<string> newStrings = new List<string>(strings);
+                    filters.afterGetValues(actionContext, newStrings);
+                    //newStrings.Add("asdf");
+                    content.Value = newStrings;
+                }
+
+                return res;
             }
-           
-            return res;
 
         }
 
