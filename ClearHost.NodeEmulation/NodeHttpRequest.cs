@@ -57,8 +57,8 @@ namespace ClearHost.NodeEmulation
 
         }
 
-        public V8Runtime runtime { get; set; }
-        public V8ScriptEngine engine { get; set; }
+        //public V8Runtime runtime { get; set; }
+        //public V8ScriptEngine engine { get; set; }
 
         public Require require { get; set; }
         public void init(DynamicObject optoins)

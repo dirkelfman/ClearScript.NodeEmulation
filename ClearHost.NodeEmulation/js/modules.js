@@ -117,8 +117,8 @@ var builtinModules = (function() {
 
     function Request(options, callback) {
         this.ccInner = new ccnetHttpRequest(options, callback);
-        this.ccInner.runtime = container.runtime;
-        this.ccInner.engine = container.engine;
+    //    this.ccInner.runtime = container.runtime;
+   //     this.ccInner.engine = container.engine;
         this.ccInner.require = container.require;
     }
 
@@ -308,5 +308,9 @@ var builtinModules = (function() {
     return modules;
 
 })();
+
 require = builtinModules.require;
+Buffer = require('buffer').Buffer;
+process = require('process');
+setTimeout = require('timers').setTimeout;
 builtinModules = builtinModules;
