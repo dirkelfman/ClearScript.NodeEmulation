@@ -1,7 +1,7 @@
 using System.Linq;
 using WebGrease.Css.Extensions;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class CheapConsole
     {

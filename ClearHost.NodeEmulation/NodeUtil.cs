@@ -5,7 +5,7 @@ using System.Linq;
 using System.Web;
 using Microsoft.ClearScript.V8;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class NodeUtil
     {

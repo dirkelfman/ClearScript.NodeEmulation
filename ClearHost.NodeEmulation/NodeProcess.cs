@@ -7,7 +7,7 @@ using Microsoft.ClearScript.V8;
 using System;
 using Microsoft.ClearScript;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class NodeProcess
     {

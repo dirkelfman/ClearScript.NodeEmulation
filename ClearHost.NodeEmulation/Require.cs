@@ -9,11 +9,12 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Microsoft.ClearScript.V8;
 using System;
+using ClearHost.NodeEmulation;
 using Microsoft.ClearScript;
 using ClearScript.Manager;
 using ClearScript.Manager.Caching;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public  class Require
     {
@@ -30,7 +31,7 @@ namespace ClearHost.NodeEmulation
             engine.AddHostType("ccnetHttpRequest", typeof(NodeHttpRequest));
             _engine.AddHostType("ccnetProcess", typeof(NodeProcess));
             _engine.AddHostType("ccnetTimers", typeof(NodeTimers));
-             
+             _engine.AddHostObject("ccnetHelpers", typeof( Helpers));
             engine.AddHostType("ccNetEventEmitter", typeof(NodeEventEmitter));
             engine.AddHostObject("util", new NodeUtil(engine));
             _engine.AddHostObject("console", new CheapConsole());
@@ -42,6 +43,9 @@ namespace ClearHost.NodeEmulation
            
             
         }
+
+
+
 
         void LoadBuiltInModules()
         {
@@ -104,6 +108,7 @@ namespace ClearHost.NodeEmulation
                 var fnTxt = System.Text.Encoding.UTF8.GetString(ms.ToArray());
 
                 v8Script = _runtime.Compile(key, fnTxt);
+               
             }
             else
             {

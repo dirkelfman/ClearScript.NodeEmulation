@@ -7,7 +7,7 @@ using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Generic;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class NodeEventEmitter
     {

@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class CallBacker
     {
         public Task T { get; set; }
-        public Action Callback { get; set; }
+        public CallbackDelegate Callback { get; set; }
 
         public CallBacker()
         {
@@ -17,7 +17,8 @@ namespace ClearHost.NodeEmulation
             Callback = CallbackImp;
         }
 
-        void CallbackImp()
+        public delegate void CallbackDelegate(object a = null, object b = null);
+        void CallbackImp(object a=null, object b=null)
         {
             T.Start();
         }

@@ -1,4 +1,4 @@
-﻿/* global  ccNetEventEmitter,ccnetTimers,ccnetBuffer,ccnetHttpRequest,ccnetProcess, util */
+﻿/* global  ccNetEventEmitter,ccnetTimers,ccnetBuffer,ccnetHttpRequest,ccnetProcess, util, ccnetHelpers */
 var builtinModules = (function() {
 
     // function ccnetBuffer() {}
@@ -159,9 +159,36 @@ var builtinModules = (function() {
             var delay = arguments[1];
             return ccnetTimersInstance.setTimeout(callback, delay, args);
         }
-    }
-    debugger;
+    };
     
+
+
+    function convertToJsArray(hostArray) {
+        var result = [];
+        for (var i = 0; i < hostArray.Length; i++)
+            result.push(hostArray[i]);
+        return result;
+    }
+
+    function convertToHostArray(jsArray) {
+        jsArray = jsArray||[];
+        var hostArray =  ccnetHelpers.createObjectArray(jsArray.length);
+       
+        for (var i = 0; i < jsArray.Length; i++)
+            {
+                hostArray[i]=jsArray[i];
+            }
+        return hostArray;
+    }
+
+
+    function createArrayCallbackWrapper(hostFn){
+        return function (){
+            var jArray = Array.prototype.slice.call(arguments, 0),
+             hostArray = convertToHostArray(jArray);
+            hostFn(hostArray);
+        };
+    }
 
 
 
@@ -173,6 +200,8 @@ var builtinModules = (function() {
         this.isBuffer = true;
         this.length = ccInner.length;
     }
+
+
     inherits(IncommingMessage, Buffer);
     //inherits(IncommingMessage, EventEmitter);
 
@@ -273,6 +302,11 @@ var builtinModules = (function() {
             readSync: function() {
                 return new Buffer();
             }
+        },
+        clearCaseHelpers:{
+            convertToJsArray:convertToJsArray,
+            createArrayCallbackWrapper:createArrayCallbackWrapper,
+            convertToHostArray:convertToHostArray
         },
         crypto: {
 

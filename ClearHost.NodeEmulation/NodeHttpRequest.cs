@@ -9,7 +9,7 @@ using Microsoft.ClearScript.V8;
 using Newtonsoft.Json.Schema;
 using WebGrease.Css.Extensions;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class NodeHttpsRequest : NodeHttpRequest
     {

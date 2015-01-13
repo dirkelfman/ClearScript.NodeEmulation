@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using ClearHost.NodeEmulation;
+using ClearScript.NodeEmulation;
 using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
 using System;
@@ -60,7 +60,7 @@ namespace ConsoleApplication2
 
                                               });
 
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < 1; i++)
             {
                 Task t = new Task(()=> main2());
                 t.Start();
@@ -128,6 +128,7 @@ namespace ConsoleApplication2
         static void TryIt(IRuntimeManager runtime, V8ScriptEngine engine)
         {
 
+            
             var require = new Require(runtime, engine);
             require.BuiltIns.process.env.NODE_DEBUG = "request";
             var file = new System.IO.FileInfo(Environment.CurrentDirectory + @"..\..\..\js\rateProvider.built.js");
@@ -149,9 +150,11 @@ namespace ConsoleApplication2
             var pb = new PropertyBag();
 
 
+          
+
             var bing = engine.Script.Object.create(module.RateProvider.prototype);
 
-
+            
             bing.getRatesAsync(pb, cb.Callback);
           //  provider.getRatesAsync(pb, cb.Callback);
             cb.T.Wait();

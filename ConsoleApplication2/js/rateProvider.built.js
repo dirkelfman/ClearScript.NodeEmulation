@@ -29187,7 +29187,7 @@ RateProvider.prototype.getRatesAsync = function (props, callback) {
 
          props.joke = body.joke;
 
-         callback();
+         callback(null);
      });
 
     //request({

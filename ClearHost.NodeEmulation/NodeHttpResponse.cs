@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.ClearScript;
 using WebGrease.Css.Extensions;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class NodeHttpResponse : NodeBuffer
     {

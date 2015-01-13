@@ -2,7 +2,7 @@ using System;
 using System.Dynamic;
 using System.IO;
 
-namespace ClearHost.NodeEmulation
+namespace ClearScript.NodeEmulation
 {
     public class NodeBuffer : NodeEventEmitter
     {
