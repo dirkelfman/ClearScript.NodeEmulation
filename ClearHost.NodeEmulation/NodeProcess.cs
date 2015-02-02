@@ -11,12 +11,12 @@ namespace ClearScript.NodeEmulation
 {
     public class NodeProcess
     {
-       
+        private readonly Require _require;
 
-        public NodeProcess()
+
+        public NodeProcess(Require require)
         {
-         
-          
+            _require = require;
         }
 
         public void nextTick(dynamic callback)
@@ -31,6 +31,8 @@ namespace ClearScript.NodeEmulation
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine(ex);
+
+                        //throw ex;
                     }
                 });
 

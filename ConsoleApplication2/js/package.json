@@ -1,7 +1,7 @@
 {
   "name": "asdfsdf",
   "dependencies": {
-    "mozu-javascript-sdk": "c:\\projects\\sdk\\mozu-node-sdk",
+    "mozu-node-sdk": "^0.9.3",
     "request": "~2"
   },
   "main": "go",

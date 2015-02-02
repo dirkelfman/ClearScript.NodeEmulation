@@ -9,6 +9,13 @@ namespace ClearScript.NodeEmulation
 {
     public class NodeTimers
     {
+        private readonly Require _require;
+
+        public NodeTimers(Require require)
+        {
+            _require = require;
+        }
+
         public object setTimeout(dynamic  callback, int delay, params object[] args)
         {
             CancellationTokenSource cts = new CancellationTokenSource();

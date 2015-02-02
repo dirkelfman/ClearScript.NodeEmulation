@@ -38,10 +38,21 @@ namespace ClearScript.NodeEmulation
         {
              System.Diagnostics.Debug.WriteLine(stuff);
         }
-         public void inspect(object obj , DynamicObject config = null)
+
+        public void inspect(object obj, DynamicObject config = null)
         {
-             throw new NotImplementedException();
+            try
+            {
+                var str = (string) _engine.Script.JSON.stringify(obj);
+                System.Diagnostics.Debug.WriteLine(str);
+            }
+            catch
+            {
+            }
         }
+
+
+        
 
         public bool isArray(object obj)
         {

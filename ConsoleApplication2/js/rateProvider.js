@@ -26,67 +26,68 @@ RateProvider.prototype.getRates = function(rateDictionary) {
 
 RateProvider.prototype.getRatesAsync = function (props, callback) {
 
-    
 
-    //var client = require('mozu-javascript-sdk').client({
-    //    'appId': 'd4e9bb5.steve.1.0.0.release',
-    //    'sharedSecret': '5d8cb5f6275b4a4bbd6a9e32557bb9be',
-    //    'baseUrl': 'https://home.mozu.com/',
-
-    //    'tenant': 3696,
-    //    'master-catalog': 1,
-    //    'tenantPod': 'https://t3696.sandbox.mozu.com'
-    //});
-
-    //debugger;
-    //client.commerce().catalog().admin().product().getProducts().then(function () {
-    //    props["joke"] = "bla";
-    //    console.log(arguments);
-    //    callback();
-    //}, function () {
-    //    callback();
-    //});
-
-
-    //request.debug = true;
-    var request = require('request');
-     request.post({
+debugger;
+    var client = require('mozu-node-sdk').client({
        
-         uri: 'http://restmirror.appspot.com/',
-         json: true,
-         body:{ joke:'hahaha'},
-        // json:true
-     }, function (error, response, body) {
+            'appId': 'd4e9bb5.nodetest.1.0.0.release',
+            'appKey': 'd4e9bb5.nodetest.1.0.0.release',
+            'sharedSecret': '0e159c92dd264bf4ab1df7a2435f301d',
+            'baseUrl': 'https://home.mozu.com/',
+            'tenantID':9105,
+            'siteID':11579,
+             masterCatalogID:1,
+             catalogID:1,
+            'tenant':9105,
+            'site':11579,
+             masterCatalog:1,
+             catalog:1
+            //'developerAccountId': '001',
+            //'developerAccount': {
+            //    'emailAddress': 'example@volusion.com',
+            //    'password': 'Password123!'
+            //}
+        
+    });
 
-         props.joke = body.joke;
+    // client.setTenant(9105);
+    // client.setSite(11579);
+    // client.setMasterCatalog(1);
+    // client.setCatalog(1);
+    props.joke = 'hey';
+    function log(result) {
+       // console.log(util.inspect(result));
 
-         callback(null);
-     });
+        callback(null);
+    }
 
-    //request({
-    //    uri: 'http://www.omdbapi.com/?t=star%20wars&y=&plot=short&r=json',
-    //    json:true
-    //}, function(error, response, body) {
-    //    if (!error && response.statusCode == 200) {
-    //        //console.log(body); // Print the google web page.
-    //        props.joke = body.Actors;
-    //        callback();
-    //    }
-    //});
+    function reportError(error) {
+        console.error(error.message, error);
+        callback(null);
+    }
+
+    var productsClient= client.commerce().catalog().admin().product();
+    productsClient.getProducts({
+        filter: 'categoryId eq 5'
+    }).then(log, reportError);
 
 
-    //request({
-    //    url: 'http://www.omdbapi.com/?t=star%20wars&y=&plot=short&r=json',
-    //    method: 'GET',
-    //    timeout: 10000,
-    //    followRedirect: true,
-    //    maxRedirects: 10,
+    
+    
+    //var request = require('request');
+    // request.post({
 
-    //}, function (error, response, body) {
-    // //   console.log(body);
-    //   // props.thing = body.actors;
-    //    callback();
-    //});
+    //     uri: 'http://restmirror.appspot.com/',
+    //     json: true,
+    //     body:{ joke:'hahaha'},
+    //    // json:true
+    // }, function (error, response, body) {
+
+    //     props.joke = body.joke;
+    //     request = null;
+    //     callback(null);
+    // });
+
 }
 debugger;
 

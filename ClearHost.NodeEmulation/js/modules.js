@@ -23,7 +23,7 @@ var builtinModules = (function() {
     var classes = {};
 
     function EventEmitter() {
-        this.ccInner = new ccNetEventEmitter();
+        this.ccInner = container.require.GetService('ccNetEventEmitter');
     }
     EventEmitter.prototype.on = function(event, listner) {
 
@@ -63,12 +63,13 @@ var builtinModules = (function() {
 
     function Buffer() {
         this.isBuffer = true;
+        this.ccInner = container.require.GetService('ccnetBuffer');
         if (arguments.length === 0) {
-            this.ccInner = new ccnetBuffer();
+           
         } else if (arguments.length == 1) {
-            this.ccInner = new ccnetBuffer(arguments[0] || null);
+            this.ccInner.Init(arguments[0] || null);
         } else if (arguments.length == 2) {
-            new ccnetBuffer(arguments[0] || null, arguments[1] || null);
+            this.ccInner.Init(arguments[0] || null, arguments[1] || null);
         }
 
         this.length = this.ccInner.length;
@@ -116,10 +117,9 @@ var builtinModules = (function() {
 
 
     function Request(options, callback) {
-        this.ccInner = new ccnetHttpRequest(options, callback);
-    //    this.ccInner.runtime = container.runtime;
-   //     this.ccInner.engine = container.engine;
-        this.ccInner.require = container.require;
+        this.ccInner = container.require.GetService('ccnetHttpRequest');
+        this.ccInner.Init(options, callback);
+
     }
 
     inherits(Request, EventEmitter);
@@ -149,14 +149,16 @@ var builtinModules = (function() {
     };
 
 
-    
-    var ccnetTimersInstance = new ccnetTimers();
+    var ccnetTimersInstance = null;
     
     var timers  = {
         setTimeout : function () {
             var args = Array.prototype.slice(arguments, 2);
             var callback = arguments[0];
             var delay = arguments[1];
+            if ( !ccnetTimersInstance){
+                ccnetTimersInstance = container.require.GetService('ccnetTimers'); 
+            }
             return ccnetTimersInstance.setTimeout(callback, delay, args);
         }
     };
@@ -272,8 +274,9 @@ var builtinModules = (function() {
     var process = {
         nextTick: function(callback) {
             if (!process.ccProcess) {
-                process.ccProcess = new ccnetProcess();
+                process.ccProcess = container.require.GetService('ccnetProcess'); 
             }
+            
             process.ccProcess.nextTick(function(){
                 callback();
             });
@@ -348,3 +351,4 @@ Buffer = require('buffer').Buffer;
 process = require('process');
 setTimeout = require('timers').setTimeout;
 builtinModules = builtinModules;
+debugger;

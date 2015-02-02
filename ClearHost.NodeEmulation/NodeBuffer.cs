@@ -1,11 +1,15 @@
 using System;
+using System.ComponentModel;
 using System.Dynamic;
 using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace ClearScript.NodeEmulation
 {
     public class NodeBuffer : NodeEventEmitter
     {
+        private readonly Require _require;
 
         public bool isCCnetBuffer = true;
 
@@ -21,38 +25,42 @@ namespace ClearScript.NodeEmulation
            
         }
 
-        
-        
 
-
-      
-        public NodeBuffer(object param1)
+        public NodeBuffer Init(string param1)
         {
-            if (param1 is string)
-            {
-                this.InnerStream = new MemoryStream();
-                var buf = System.Text.Encoding.UTF8.GetBytes((string) param1);
-
-                this.InnerStream.Write(buf, 0, buf.Length);
-                return;
-               
-            }
-            throw new NotImplementedException();
-
-        }
-        public NodeBuffer(object param1, object param2)
-        {
-            throw new NotImplementedException();
-        }
-
-        public NodeBuffer() : this(new MemoryStream())
-        {
+            return this.Init( param1 , "utf-8" );
             
         }
-        public NodeBuffer(Stream innerStream)
+
+        public NodeBuffer Init(string text, string encodingTxt)
+        {
+
+            this.InnerStream = new MemoryStream();
+
+
+            var enc = string.IsNullOrWhiteSpace(encodingTxt) ? System.Text.Encoding.UTF8 : Encoding.GetEncoding(encodingTxt);
+            //todo: look up encoding.  
+            var buf = enc.GetBytes((string)text);
+
+            this.InnerStream.Write(buf, 0, buf.Length);
+            return this;
+
+
+
+
+        }
+
+
+        public NodeBuffer(Require require) : this(new MemoryStream())
+        {
+            _require = require;
+        }
+
+        internal  NodeBuffer(Stream innerStream)
         {
             InnerStream = innerStream;
         }
+
 
         public static bool isBuffer (object obj)
         {

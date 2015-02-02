@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>ClearScript.NodeEmulation</id>
+        <version>1.0.0.0</version>
+        <title>ClearScript.NodeEmulation</title>
+        <authors>dirkelfman</authors>
+        <owners>dirkelfman</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Adds base node packages to clearscript which can be used with js built from browerify</description>
+        <summary />
+        <copyright>Copyright 2015 Dirkelfman, et. al. - All rights reserved.</copyright>
+        <language />
+        <tags>ClearScript V8</tags>
+        <dependencies>
+            <dependency id="ClearScript.Installer" version="1.0.0" />
+            <dependency id="ClearScript.Manager" version="1.3.4.26813" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="ClearHost.NodeEmulation\bin\Debug\ClearHost.NodeEmulation.dll" target="lib\net45\ClearHost.NodeEmulation.dll" />
+        <file src="ClearHost.NodeEmulation\bin\Debug\ClearHost.NodeEmulation.pdb" target="lib\net45\ClearHost.NodeEmulation.pdb" />
+    </files>
+</package>

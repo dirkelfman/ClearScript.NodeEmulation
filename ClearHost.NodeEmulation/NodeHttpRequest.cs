@@ -13,7 +13,10 @@ namespace ClearScript.NodeEmulation
 {
     public class NodeHttpsRequest : NodeHttpRequest
     {
-
+        public NodeHttpsRequest(Require require) : base(require)
+        {
+            
+        }
     }
 
     public class NodeHttpRequest :NodeEventEmitter
@@ -21,16 +24,16 @@ namespace ClearScript.NodeEmulation
         private HttpRequestMessage _requestMessage;
         //private NodeHttpRequestOptoins _options;
         private DynamicObject _options;
-        private HttpClient _client;
+        
         private Task<HttpResponseMessage> _responseTask;
         private Stream _requestStream;
         //private DynamicObject _callback;
       
         public bool isCCnetHttpRequest = true;
       
-        public NodeHttpRequest(DynamicObject options = null, dynamic callback = null) 
+        public void Init (DynamicObject options = null, dynamic callback = null) 
         {
-            _client = new HttpClient();
+           
             _requestMessage = new HttpRequestMessage();
 
             _options = options;
@@ -42,29 +45,10 @@ namespace ClearScript.NodeEmulation
             }
         }
 
-        public NodeHttpRequest(HttpClient client, HttpRequestMessage requestMessage, DynamicObject options = null, dynamic callback = null)
-        {
-            _client = client;
-            _requestMessage = requestMessage;
 
-            _options = options;
-
-
-            if (callback != null && !(callback is Microsoft.ClearScript.Undefined))
-            {
-                this.@on("response" ,callback);
-            }
-
-        }
-
-        //public V8Runtime runtime { get; set; }
-        //public V8ScriptEngine engine { get; set; }
 
         public Require require { get; set; }
-        public void init(DynamicObject optoins)
-        {
-            
-        }
+     
      
 
         public DynamicObject getHeaders()
@@ -120,12 +104,18 @@ namespace ClearScript.NodeEmulation
             }
 
             
-            var nodeBuffer = new NodeBuffer(text, encoding);
+            var nodeBuffer = new NodeBuffer(this.require).Init( text, encoding);
             write(nodeBuffer, null);
         }
 
         public void write(NodeBuffer data, string encoding = null)
         {
+            var method = Method;
+            if (!string.Equals(method,"post", StringComparison.OrdinalIgnoreCase)&&
+                !string.Equals(method,"put", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
             if (data != null)
             {
                 
@@ -143,6 +133,18 @@ namespace ClearScript.NodeEmulation
         }
 
         public string protocal = "http";
+        private Require _require;
+
+        public NodeHttpRequest(Require require)
+        {
+            if (require == null) throw new ArgumentNullException("require");
+            this._require = require;
+        }
+
+        string Method
+        {
+            get { return _options.GetField("method", "GET"); }
+        }
         public void end(NodeBuffer data = null, string encoding = null)
         {
             write(data, encoding);
@@ -180,11 +182,17 @@ namespace ClearScript.NodeEmulation
                 
             }
 
+       
+
 
             _requestMessage.Method =  new HttpMethod(_options.GetField("method", "GET"));
-           
+
+
+            var client = _require.GetService(typeof(HttpClient).ToString()) as HttpClient;
+            
+
             //todo set up cancel optons
-            _responseTask = _client.SendAsync(this._requestMessage,HttpCompletionOption.ResponseHeadersRead)
+            _responseTask = client.SendAsync(this._requestMessage, HttpCompletionOption.ResponseHeadersRead)
                 .ContinueWith<HttpResponseMessage>(OnResponse);
 
         }
