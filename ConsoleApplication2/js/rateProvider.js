@@ -41,7 +41,8 @@ debugger;
             'tenant':9105,
             'site':11579,
              masterCatalog:1,
-             catalog:1
+             catalog:1,
+             tenantPod:'http://foot.com'
             //'developerAccountId': '001',
             //'developerAccount': {
             //    'emailAddress': 'example@volusion.com',
@@ -56,19 +57,19 @@ debugger;
     // client.setCatalog(1);
     props.joke = 'hey';
     function log(result) {
-       // console.log(util.inspect(result));
-
+        //console.log(util.inspect(result));
+       // props.joke = result.content.productName;
         callback(null);
     }
 
     function reportError(error) {
         console.error(error.message, error);
-        callback(null);
+        callback(error);
     }
 
     var productsClient= client.commerce().catalog().admin().product();
-    productsClient.getProducts({
-        filter: 'categoryId eq 5'
+    productsClient.getProduct({
+        productCode: 'MS-CAR-RAK-006'
     }).then(log, reportError);
 
 

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>ClearScript.NodeEmulation</id>
-        <version>1.0.0.0</version>
+        <version>1.0</version>
         <title>ClearScript.NodeEmulation</title>
         <authors>dirkelfman</authors>
         <owners>dirkelfman</owners>
@@ -18,7 +18,7 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="bin\Debug\ClearHost.NodeEmulation.dll" target="lib\net45\ClearHost.NodeEmulation.dll" />
-        <file src="bin\Debug\ClearHost.NodeEmulation.pdb" target="lib\net45\ClearHost.NodeEmulation.pdb" />
+        <file src="bin\Debug\ClearScript.NodeEmulation.dll" target="lib\net45\ClearScript.NodeEmulation.dll" />
+        <file src="bin\Debug\ClearScript.NodeEmulation.pdb" target="lib\net45\ClearScript.NodeEmulation.pdb" />
     </files>
 </package>

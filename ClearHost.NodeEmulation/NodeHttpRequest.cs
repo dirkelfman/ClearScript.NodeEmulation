@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
 using Newtonsoft.Json.Schema;
-using WebGrease.Css.Extensions;
+using System.Linq;
+
 
 namespace ClearScript.NodeEmulation
 {
@@ -47,7 +48,7 @@ namespace ClearScript.NodeEmulation
 
 
 
-        public Require require { get; set; }
+        public Require Require { get; set; }
      
      
 
@@ -103,8 +104,8 @@ namespace ClearScript.NodeEmulation
                 return;
             }
 
-            
-            var nodeBuffer = new NodeBuffer(this.require).Init( text, encoding);
+
+            var nodeBuffer = new NodeBuffer(this.Require).Init(text, encoding);
             write(nodeBuffer, null);
         }
 
@@ -133,12 +134,12 @@ namespace ClearScript.NodeEmulation
         }
 
         public string protocal = "http";
-        private Require _require;
+    
 
-        public NodeHttpRequest(Require require)
+        public NodeHttpRequest(Require require):base(require)
         {
             if (require == null) throw new ArgumentNullException("require");
-            this._require = require;
+            this.Require = require;
         }
 
         string Method
@@ -148,17 +149,27 @@ namespace ClearScript.NodeEmulation
         public void end(NodeBuffer data = null, string encoding = null)
         {
             write(data, encoding);
-            var uriBuilder = new UriBuilder(
+            var path = (_options.GetField<string>("path") ?? "");
+
+
+            int qpos = path.IndexOf('?');
+
+
+
+            var uri = new UriBuilder(
                 this.protocal,
                 _options.GetField<string>("hostname") ?? _options.GetField<string>("host"),
-                _options.GetField<int>("port", new Func<object, int>(Convert.ToInt32), 80),
-                _options.GetField<string>("path")).Uri;
-            _requestMessage.RequestUri = uriBuilder;
+                _options.GetFieldWithConverter<int>("port", new Func<object, int>(Convert.ToInt32), 80),
+                qpos > -1 ? path.Substring(0, qpos) : path,
+                qpos > -1 ? path.Substring(qpos) : null).Uri;
+
+
+            _requestMessage.RequestUri = uri;
             var headers = this.getHeaders();
            
             if ( headers!= null)
             {
-                headers.GetDynamicMemberNames().ForEach(key =>
+                headers.GetDynamicMemberNames().ToList().ForEach(key =>
                 {
                     var val = headers.GetField<object>(key);
                     if (val != null)
@@ -188,7 +199,7 @@ namespace ClearScript.NodeEmulation
             _requestMessage.Method =  new HttpMethod(_options.GetField("method", "GET"));
 
 
-            var client = _require.GetService(typeof(HttpClient).ToString()) as HttpClient;
+            var client = Require.GetService(typeof(HttpClient).ToString()) as HttpClient;
             
 
             //todo set up cancel optons
@@ -209,7 +220,7 @@ namespace ClearScript.NodeEmulation
             List<dynamic> listeners;
             if (this.hasEvent("response"))
             {
-                NodeHttpResponse nodeResponse = new NodeHttpResponse(this, responseTask);
+                NodeHttpResponse nodeResponse = new NodeHttpResponse(this, responseTask, this.Require);
                 this.emit("response", nodeResponse);
                 nodeResponse.InitEvents();
             }

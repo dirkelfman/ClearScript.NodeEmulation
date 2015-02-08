@@ -51,16 +51,13 @@ namespace ClearScript.NodeEmulation
         }
 
 
-        public NodeBuffer(Require require) : this(new MemoryStream())
+        public NodeBuffer(Require require) :base (require)
         {
+          //  InnerStream = new M;
             _require = require;
         }
 
-        internal  NodeBuffer(Stream innerStream)
-        {
-            InnerStream = innerStream;
-        }
-
+      
 
         public static bool isBuffer (object obj)
         {

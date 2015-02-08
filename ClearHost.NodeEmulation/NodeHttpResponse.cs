@@ -1,88 +1,118 @@
 using System;
-using System.Collections.Generic;
+using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.ClearScript;
-using WebGrease.Css.Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Linq;
+
 
 namespace ClearScript.NodeEmulation
 {
     public class NodeHttpResponse : NodeBuffer
     {
-        private NodeHttpRequest nodeHttpRequest;
-        private Task<HttpResponseMessage> resp;
+        private readonly Task<HttpResponseMessage> resp;
         private bool _dataFired;
-
-
-        public override string clientWrapperClass {
-            get { return "IncommingMessage"; }
-        }
-  
-        
         public bool isCCnetHttpResponse = true;
-       
-        public NodeHttpResponse(NodeHttpRequest nodeHttpRequest, Task<HttpResponseMessage> resp)
-            : base((System.IO.MemoryStream)null)
+        private NodeHttpRequest nodeHttpRequest;
+
+        public NodeHttpResponse(NodeHttpRequest nodeHttpRequest, Task<HttpResponseMessage> resp, Require require)
+            : base(require)
         {
             // TODO: Complete member initialization
             this.nodeHttpRequest = nodeHttpRequest;
             this.resp = resp;
             if (!resp.IsFaulted)
             {
-                this.statusCode = (int) resp.Result.StatusCode;
+                statusCode = (int) resp.Result.StatusCode;
 
-                this.headers = new PropertyBag();
-                resp.Result.Headers.ForEach(x =>
-                {
-                    this.headers[x.Key] = Enumerable.FirstOrDefault<string>(x.Value);
-                });
+                headers = new PropertyBag();
+                resp.Result.Headers.ToList().ForEach(x => { headers[x.Key] = x.Value.FirstOrDefault(); });
                 if (resp.Result.Content != null)
                 {
-                    resp.Result.Content.Headers.ForEach(x =>
-                    {
-                        this.headers[x.Key] = x.Value.FirstOrDefault();
-                    });
+                    resp.Result.Content.Headers.ToList().ForEach(x => { headers[x.Key] = x.Value.FirstOrDefault(); });
                 }
-
-                
             }
-            
-            
         }
 
-
-      
-        public void InitEvents()
+        public override string clientWrapperClass
         {
-            this.resp.Result.Content.ReadAsStreamAsync().ContinueWith(x =>
-            {
-                this.InnerStream = x.Result;
-                this.OnData();
-            });
+            get { return "IncommingMessage"; }
         }
+
         public object body { get; set; }
-        
-        
-       
-
-
-        //todo .. rework as chunked
-        void OnData( )
-        {
-            this.emit("data", this);
-            this.emit("end", null);
-            
-            
-        }
         public string httpVersion { get; set; }
         public dynamic headers { get; set; }
-
         public int statusCode { get; set; }
+
+        public override long length
+        {
+            get
+            {
+                if (resp.IsCompleted && resp.Result.Content != null && resp.Result.Content.Headers.ContentLength.HasValue)
+                {
+                    return resp.Result.Content.Headers.ContentLength.Value;
+                }
+                if (InnerStream != null && InnerStream.CanSeek)
+                {
+                    return InnerStream.Length;
+                }
+                return 1024*4;
+            }
+        }
+
+        public void InitEvents()
+        {
+            resp.Result.Content.ReadAsStreamAsync().ContinueWith(x =>
+            {
+                InnerStream = x.Result;
+                OnData();
+            });
+        }
+
+        //todo .. rework as chunked
+        private void OnData()
+        {
+            emit("data", this);
+
+            if (hasEvent("json"))
+            {
+                var resp = GetHttpResponseMessage();
+                if (resp.IsSuccessStatusCode && resp.Content != null)
+                {
+                    try
+                    {
+                        if (resp.RequestMessage.RequestUri.PathAndQuery.Contains("product"))
+                        {
+                            using (var stream = resp.Content.ReadAsStreamAsync().Result)
+                            {
+                                var sr = new StreamReader(stream);
+
+                                var ser = new JsonSerializer();
+                                ser.Converters.Add(new ExpandoObjectConverter());
+                                var json = ser.Deserialize<ExpandoObject>(new JsonTextReader(sr));
+                                //    var json = ser.Deserialize(new JsonTextReader(sr));
+                                emit("json", json);
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                       
+                    }
+                }
+            }
+            emit("end", null);
+        }
 
         public byte[] read(int? size = null)
         {
-            throw  new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public void pipe(dynamic destinationStream, dynamic options = null)
@@ -90,7 +120,7 @@ namespace ClearScript.NodeEmulation
             throw new NotImplementedException();
         }
 
-        public void unpipe(dynamic destinationStream= null)
+        public void unpipe(dynamic destinationStream = null)
         {
             throw new NotImplementedException();
         }
@@ -104,22 +134,5 @@ namespace ClearScript.NodeEmulation
         {
             return resp.Result;
         }
-
-        public override  long length
-        {
-            get
-            {
-                if (this.resp.IsCompleted && this.resp.Result.Content != null && this.resp.Result.Content.Headers.ContentLength.HasValue)
-                {
-                    return this.resp.Result.Content.Headers.ContentLength.Value;
-                }
-                if (this.InnerStream != null && this.InnerStream.CanSeek)
-                {
-                    return InnerStream.Length;
-                }
-                return 1024*4;
-            }
-        }
-        
     }
 }

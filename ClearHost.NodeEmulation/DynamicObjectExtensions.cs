@@ -69,6 +69,11 @@ namespace ClearScript.NodeEmulation
             }
         }
 
+        public static bool TrySetField(this DynamicObject obj, string field, object value)
+        {
+            return obj.TrySetMember(new MySetMemberBinder(field), value);
+        }
+
         public static T GetField<T>(this DynamicObject obj , string field, T defaultValue = default(T))
         {
             Object outField;
@@ -85,11 +90,9 @@ namespace ClearScript.NodeEmulation
             return defaultValue;
         }
 
-        public static bool TrySetField(this DynamicObject obj, string field, object value)
-        {
-            return obj.TrySetMember(new MySetMemberBinder(field), value);
-        }
-        public static T GetField<T>(this DynamicObject obj, string field, Func<object,T> converter, T defaultValue = default(T))
+        
+        public static T GetFieldWithConverter<T>(this DynamicObject obj, string field, Func<object,T> converter, T defaultValue = default(T))
+            
         {
             //object  outField = obj.field;
 

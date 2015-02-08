@@ -18,7 +18,7 @@ using ClearScript.Manager.Caching;
 
 namespace ClearScript.NodeEmulation
 {
-    public  class Require :IDisposable
+    public  class Require
     {
        // private readonly IRuntimeManager _runtime;
        // private readonly V8ScriptEngine _engine;
@@ -29,20 +29,16 @@ namespace ClearScript.NodeEmulation
             RuntimeManager = runtime;
             Engine = engine;
 
-            //_engine.AddHostType("ccnetBuffer", typeof(NodeBuffer));
-            //_engine.AddHostType("ccnetHttpRequest", typeof(NodeHttpRequest));
-            //_engine.AddHostType("ccnetProcess", typeof(NodeProcess));
-            //_engine.AddHostType("ccnetTimers", typeof(NodeTimers));
-            //_engine.AddHostType("ccNetEventEmitter", typeof(NodeEventEmitter));
+      
 
             Engine.AddHostObject("ccnetHelpers", typeof(Helpers));
             Engine.AddHostObject("util", new NodeUtil(engine));
-            Engine.AddHostObject("console", new CheapConsole());
+            Engine.AddHostObject("console", new CheapConsole(this));
 
 
             LoadBuiltInModules();
 
-            //HttpClient client = HttpClientFactory.Create(new Handler1(), new Handler2(), new Handler3())
+      
            
             
         }
@@ -95,15 +91,22 @@ namespace ClearScript.NodeEmulation
 
         public Func<DelegatingHandler[]> RequestHandlerFactory { get; set; }
 
-
+        public INodeConsole Console { get; set; }
 
         public Func<string, object> ServiceLocator { get; set; }
 
 
-
-        public void Dispose()
+        public event EventHandler OnReset;
+        public void Reset()
         {
-            Engine.Evaluate("delete module;delete modules;delete require;delete Buffer;delete process;delete setTimeout;delete builtinModules;");
+            this.ServiceLocator = null;
+            this.RequestHandlerFactory = null;
+            if (OnReset != null)
+            {
+                OnReset(this, EventArgs.Empty);
+                OnReset = null;
+            }
+        
         }
 
  

@@ -48,6 +48,25 @@ namespace ConsoleApplication2
 
         private static void Main(string[] args)
         {
+
+            var hostname = "food.com";
+            var port = 80;
+            var path = "/abc/deasdk";
+
+            int qpos = path.IndexOf('?');
+
+
+            var pathParts = (path ?? "").Split(new char[] { '?' }, 2);
+            var uriBuilder = new UriBuilder(
+               "http",
+              hostname,
+              port,
+              qpos>-1? path.Substring(0,qpos ) : path,
+              qpos>-1? path.Substring (qpos) :null).Uri;
+
+
+
+
             //var managerPool = new ManagerPool(new ManagerSettings());
             var settings = new ManagerSettings()
                            {
@@ -56,7 +75,12 @@ namespace ConsoleApplication2
             ManagerPool.InitializeCurrentPool(new ManualManagerSettings()
                                               {
                                                   V8DebugEnabled = true,
-                                                  V8DebugPort = 5858
+                                                  V8DebugPort = 5858,
+                                                  MaxExecutableBytes =0,
+                                                  MaxNewSpaceBytes = 0,
+                                                  MaxOldSpaceBytes =0,
+                                                  RuntimeMaxCount = 10
+                                                  
                                               });
             //ManagerPool.InitializeCurrentPool(new ManagerSettings()
             //                                  {
@@ -86,11 +110,13 @@ namespace ConsoleApplication2
                 using (var scope = new ManagerScope())
                 {
                     var runtime = scope.RuntimeManager;
-                    V8Runtime v8Runtime = (V8Runtime)runtime.GetType().InvokeMember("_v8Runtime", BindingFlags.GetField | BindingFlags.NonPublic| BindingFlags.Instance, null, runtime,null);
 
-                    V8ScriptEngine engine = v8Runtime.CreateScriptEngine("steve", V8ScriptEngineFlags.DisableGlobalMembers| V8ScriptEngineFlags.EnableDebugging,5858);
+                    //V8Runtime v8Runtime = (V8Runtime)runtime.GetType().InvokeMember("_v8Runtime", BindingFlags.GetField | BindingFlags.NonPublic| BindingFlags.Instance, null, runtime,null);
+                    //V8Runtime v8Runtime = new V8Runtime();
+                    //runtime.GetType().InvokeMember("_v8Runtime", BindingFlags.SetField | BindingFlags.NonPublic | BindingFlags.Instance, null, runtime, new object[] { v8Runtime });
+                    //V8ScriptEngine engine = v8Runtime.CreateScriptEngine("steve", V8ScriptEngineFlags.DisableGlobalMembers| V8ScriptEngineFlags.None ,5858);
 
-                   
+                    V8ScriptEngine engine = runtime.GetEngine();
                    
 
                      
@@ -115,7 +141,7 @@ namespace ConsoleApplication2
                      //   engine.WriteHeapSnapshot("c:\\temp\\foo" + cnt + ".heapsnapshot");
                        // while (true)
                         {
-                            for (int i = 0; i < 20; i++)
+                            for (int i = 0; i < 1; i++)
                             {
                                 TryIt(runtime, engine);
                             }
@@ -166,7 +192,7 @@ namespace ConsoleApplication2
            // var rateProvider = rateProviderFactory.getRateProvider();
 
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 var cb = new CallBacker();
                 var pb = new PropertyBag();
@@ -174,7 +200,7 @@ namespace ConsoleApplication2
 
 
 
-                var bing = engine.Script.Object.create(module.RateProvider.prototype);
+                var bing = module;
                 if (Sstopwatch == null)
                 {
                     Sstopwatch = new Stopwatch();
@@ -190,11 +216,38 @@ namespace ConsoleApplication2
                 cb.T.ConfigureAwait(false);
                 cb.T.Wait();
                 var joke = pb["joke"];
-
-                require.Dispose();
+              
+                System.Diagnostics.Debug.WriteLine(joke);
                 cnt ++;
+                if (cnt%10000==0)
+                {
+                    engine.WriteHeapSnapshot("c:\\temp\\foo"+cnt+".heapsnapshot");
+                }
                 var totsSecs = Sstopwatch.ElapsedMilliseconds == 0 ? 1 : (cnt*1000)/(Sstopwatch.ElapsedMilliseconds);
                 Console.WriteLine("{0} a sec", totsSecs);
+                require.Reset();
+
+
+
+                bing = null;
+                cb = null;
+                joke = null;
+                module = null;
+                require = null;
+                require = null;
+
+
+                engine.CollectGarbage(true);
+                GC.Collect(0, GCCollectionMode.Forced);
+                GC.Collect(2, GCCollectionMode.Forced);
+                engine.CollectGarbage(true);
+                System.Threading.Thread.Sleep(1005 * 60 * 3);
+                System.Threading.Thread.Sleep(5000);
+                GC.Collect(0, GCCollectionMode.Forced);
+                GC.Collect(2, GCCollectionMode.Forced);
+                engine.CollectGarbage(true);
+                engine.WriteHeapSnapshot("c:\\temp\\fart.heapsnapshot");
+                
             }
 
 
@@ -230,12 +283,12 @@ namespace ConsoleApplication2
                     {
                         resp = request.CreateResponse();
                     }
-                    if (request.RequestUri.PathAndQuery.IndexOf("api/commerce/catalog/admin/products") > -1)
-                    {
-                        resp = request.CreateResponse();
-                        resp.Content = new StringContent("{ \"joke\":\"haha\"}");
+                    //if (request.RequestUri.PathAndQuery.IndexOf("api/commerce/catalog/admin/product") > -1)
+                    //{
+                    //    resp = request.CreateResponse();
+                    //    resp.Content = new StringContent("{ \"content\":{ \"productName\":\"steve\"}}");
 
-                    }
+                    //}
                     return resp;
                 }
                 catch(Exception)

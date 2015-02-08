@@ -43,7 +43,9 @@ namespace ClearScript.NodeEmulation
         {
             try
             {
-                var str = (string) _engine.Script.JSON.stringify(obj);
+               var str= Newtonsoft.Json.JsonConvert.SerializeObject(obj);
+
+               // var str = (string) _engine.Script.JSON.stringify(obj);
                 System.Diagnostics.Debug.WriteLine(str);
             }
             catch

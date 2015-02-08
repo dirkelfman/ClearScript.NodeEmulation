@@ -11,16 +11,26 @@ namespace ClearScript.NodeEmulation
 {
     public class NodeEventEmitter
     {
+        Require _require;
         public bool isCCnetEventEmitter = true;
         public bool isCCnet = true;
 
      
         
 
-        public NodeEventEmitter()
+        public NodeEventEmitter(Require require)
         {
-      
+            _require = require;
+            _require.OnReset += _require_OnReset;
         }
+
+        void _require_OnReset(object sender, EventArgs e)
+        {
+            _listeners.Clear();
+            this._require = null;
+
+        }
+
         private Dictionary<string, List<Tuple<dynamic,bool>>> _listeners = new Dictionary<string, List<Tuple<dynamic, bool>>>();
 
         public NodeEventEmitter addListener(string eventName, DynamicObject listener)

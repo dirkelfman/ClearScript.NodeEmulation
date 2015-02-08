@@ -8,5 +8,6 @@ namespace ClearScript.NodeEmulation
 {
     public class Globals
     {
+      
     }
 }
