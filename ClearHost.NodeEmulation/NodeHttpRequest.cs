@@ -8,6 +8,8 @@ using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
 using Newtonsoft.Json.Schema;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 
 namespace ClearScript.NodeEmulation
@@ -29,6 +31,7 @@ namespace ClearScript.NodeEmulation
         private Task<HttpResponseMessage> _responseTask;
         private Stream _requestStream;
         //private DynamicObject _callback;
+        private CancellationTokenSource _cancellationTokenSource;
       
         public bool isCCnetHttpRequest = true;
       
@@ -97,6 +100,7 @@ namespace ClearScript.NodeEmulation
 
 
 
+
         public void write(string text, string encoding = null)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -155,14 +159,21 @@ namespace ClearScript.NodeEmulation
             int qpos = path.IndexOf('?');
 
 
-
-            var uri = new UriBuilder(
+            Uri uri = null;
+            var configUrl = _options.GetField<string>("url");
+            if (!string.IsNullOrEmpty(configUrl))
+            {
+                uri = new Uri(configUrl);
+            }else
+            {
+                uri = new UriBuilder(
                 this.protocal,
                 _options.GetField<string>("hostname") ?? _options.GetField<string>("host"),
                 _options.GetFieldWithConverter<int>("port", new Func<object, int>(Convert.ToInt32), 80),
                 qpos > -1 ? path.Substring(0, qpos) : path,
                 qpos > -1 ? path.Substring(qpos) : null).Uri;
 
+            }
 
             _requestMessage.RequestUri = uri;
             var headers = this.getHeaders();
@@ -200,18 +211,31 @@ namespace ClearScript.NodeEmulation
 
 
             var client = Require.GetService(typeof(HttpClient).ToString()) as HttpClient;
-            
 
+            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            
             //todo set up cancel optons
-            _responseTask = client.SendAsync(this._requestMessage, HttpCompletionOption.ResponseHeadersRead)
+            _responseTask = client.SendAsync(this._requestMessage, HttpCompletionOption.ResponseHeadersRead, _cancellationTokenSource.Token )
                 .ContinueWith<HttpResponseMessage>(OnResponse);
 
         }
 
         public void abort()
         {
-            throw new NotImplementedException();
-            //do cancelation
+            
+            try
+            {
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                }
+         
+            }
+            catch
+            {
+                
+            
+            }
         }
 
         HttpResponseMessage  OnResponse(Task<HttpResponseMessage> responseTask)
@@ -221,7 +245,8 @@ namespace ClearScript.NodeEmulation
             if (this.hasEvent("response"))
             {
                 NodeHttpResponse nodeResponse = new NodeHttpResponse(this, responseTask, this.Require);
-                this.emit("response", nodeResponse);
+
+                this.emit("response", nodeResponse.JsWrapper);
                 nodeResponse.InitEvents();
             }
             

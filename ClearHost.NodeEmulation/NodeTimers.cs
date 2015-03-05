@@ -18,8 +18,17 @@ namespace ClearScript.NodeEmulation
 
         public object setTimeout(dynamic  callback, int delay, params object[] args)
         {
+            if (delay < 2)
+            {
+               _require.Engine.NextTick(() =>
+               {
+                   callback.call(null, args);
+               });
+                return "flurt";
+            }
             CancellationTokenSource cts = new CancellationTokenSource();
-         
+
+            var token = cts.Token;
            
               var action = new Action (() =>
                 {
@@ -32,30 +41,35 @@ namespace ClearScript.NodeEmulation
                     {
                         System.Diagnostics.Debug.WriteLine(ex);
                     }
-                    finally
+                    finally 
                     {
                         cts.Dispose();
                     }
                 });
 
-              Task.Factory.StartNew(action, cts.Token);
-              return cts;
-            
-         
+              Task.Delay(delay == 0 ? 1 : delay).ContinueWith(x=> action, token);
+             
+            return token;
 
-         //   t.Wait();
+
+
+            //   t.Wait();
         }
 
 
 
-        public void clearTimout(object cancelToken)
+        public void clearTimeout(object cancelToken)
         {
-            CancellationTokenSource tokenSource = cancelToken as CancellationTokenSource;
-            if (tokenSource != null && tokenSource.Token.CanBeCanceled)
+            var  tokenSource = cancelToken as CancellationTokenSource;
+            if (tokenSource != null )
             {
                 try
                 {
-                    tokenSource.Cancel();    
+                    if (tokenSource.Token.CanBeCanceled)
+                    {
+                        tokenSource.Cancel();        
+                    }
+                    
                 }
                 catch
                 {

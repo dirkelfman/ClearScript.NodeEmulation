@@ -6,10 +6,11 @@ using System.Dynamic;
 using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Generic;
+using Microsoft.ClearScript;
 
 namespace ClearScript.NodeEmulation
 {
-    public class NodeEventEmitter
+    public class NodeEventEmitter  
     {
         Require _require;
         public bool isCCnetEventEmitter = true;
@@ -63,31 +64,33 @@ namespace ClearScript.NodeEmulation
              List<Tuple<dynamic,bool>>events;
             if (_listeners.TryGetValue(eventName, out events))
             {
+              
                 events.ForEach(listener =>
                 {
+                    dynamic meth = listener.Item1;
                     if (args == null)
                     {
-                        listener.Item1.call(null);
+                        meth();
                     }
                     else if (args.Length == 1)
                     {
-                        listener.Item1.call(null, args[0]);
+                        meth(args[0]);
                     }
                     else if (args.Length == 2)
                     {
-                        listener.Item1.call(null, args[0], args[1]);
+                        meth(args[0], args[1]);
                     }
                     else if (args.Length == 3)
                     {
-                        listener.Item1.call(null, args[0], args[1], args[2]);
+                        meth(args[0], args[1], args[2]);
                     }
                     else if (args.Length == 4)
                     {
-                        listener.Item1.call(null, args[0], args[1], args[2], args[3]);
+                        meth(args[0], args[1], args[2], args[3]);
                     }
                     else if (args.Length == 5)
                     {
-                        listener.Item1.call(null, args[0], args[1], args[2], args[3], args[4]);
+                        meth(args[0], args[1], args[2], args[3], args[4]);
                     }
                     else if ( args.Length> 5)
                     {

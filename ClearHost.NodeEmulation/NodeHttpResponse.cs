@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,7 @@ using System.Linq;
 
 namespace ClearScript.NodeEmulation
 {
-    public class NodeHttpResponse : NodeBuffer
+    public class NodeHttpResponse : NodeBuffer 
     {
         private readonly Task<HttpResponseMessage> resp;
         private bool _dataFired;
@@ -22,6 +23,7 @@ namespace ClearScript.NodeEmulation
         public NodeHttpResponse(NodeHttpRequest nodeHttpRequest, Task<HttpResponseMessage> resp, Require require)
             : base(require)
         {
+
             // TODO: Complete member initialization
             this.nodeHttpRequest = nodeHttpRequest;
             this.resp = resp;
@@ -29,23 +31,32 @@ namespace ClearScript.NodeEmulation
             {
                 statusCode = (int) resp.Result.StatusCode;
 
-                headers = new PropertyBag();
+                this.headers = new PropertyBag();
                 resp.Result.Headers.ToList().ForEach(x => { headers[x.Key] = x.Value.FirstOrDefault(); });
                 if (resp.Result.Content != null)
                 {
                     resp.Result.Content.Headers.ToList().ForEach(x => { headers[x.Key] = x.Value.FirstOrDefault(); });
                 }
+                this.headers.Keys.ToList().ForEach(x=> this.headers[x.ToLowerInvariant()]=this.headers[x]);
             }
+            JsWrapper = nodeHttpRequest.Require.BuiltIns.clearCaseHelpers.createIncomingMessage(this);
         }
+
+        public dynamic JsWrapper { get; private set; }
 
         public override string clientWrapperClass
         {
-            get { return "IncommingMessage"; }
+            get { return "IncomingMessage"; }
         }
 
+
+        public object bytes { get; set; }
+
+        public object raw { get; set; }
         public object body { get; set; }
+      //  public object bytes { get; set; }
         public string httpVersion { get; set; }
-        public dynamic headers { get; set; }
+        public PropertyBag  headers { get; set; }
         public int statusCode { get; set; }
 
         public override long length
@@ -70,13 +81,32 @@ namespace ClearScript.NodeEmulation
             {
                 InnerStream = x.Result;
                 OnData();
+               // ProcessPipes();
             });
         }
+
+        void ProcessPipes()
+        {
+            this.nodeHttpRequest.Require.Engine.NextTick(() =>
+            {
+                if (_pipes != null)
+                {
+                    foreach (var pipe in _pipes)
+                    {
+                        //nodeHttpRequest.Require.Engine.Execute("debugger;");
+                        pipe.write(this.JsWrapper);
+                        pipe.end();
+                    }
+                    _pipes.Clear();
+                }
+            });
+        }
+
 
         //todo .. rework as chunked
         private void OnData()
         {
-            emit("data", this);
+            emit("data", this.JsWrapper);
 
             if (hasEvent("json"))
             {
@@ -85,8 +115,7 @@ namespace ClearScript.NodeEmulation
                 {
                     try
                     {
-                        if (resp.RequestMessage.RequestUri.PathAndQuery.Contains("product"))
-                        {
+                      
                             using (var stream = resp.Content.ReadAsStreamAsync().Result)
                             {
                                 var sr = new StreamReader(stream);
@@ -98,7 +127,7 @@ namespace ClearScript.NodeEmulation
                                 emit("json", json);
                                 return;
                             }
-                        }
+                        
                     }
                     catch (Exception ex)
                     {
@@ -107,17 +136,24 @@ namespace ClearScript.NodeEmulation
                     }
                 }
             }
+            this.ProcessPipes();
             emit("end", null);
         }
 
+        private List<dynamic> _pipes; 
         public byte[] read(int? size = null)
         {
             throw new NotImplementedException();
         }
 
-        public void pipe(dynamic destinationStream, dynamic options = null)
+        public dynamic pipe(dynamic destinationStream, dynamic options = null)
         {
-            throw new NotImplementedException();
+            if (_pipes == null)
+            {
+                _pipes = new List<dynamic>();
+            }
+            _pipes.Add(destinationStream);
+            return destinationStream;
         }
 
         public void unpipe(dynamic destinationStream = null)

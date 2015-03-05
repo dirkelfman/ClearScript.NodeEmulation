@@ -62,6 +62,7 @@ var builtinModules = (function() {
     };
 
     function Buffer() {
+ 
         this.isBuffer = true;
         this.ccInner = container.require.GetService('ccnetBuffer');
         if (arguments.length === 0) {
@@ -88,6 +89,9 @@ var builtinModules = (function() {
     Buffer.isEncoding = function() {
         return true;
     };
+    Buffer.toString = function (encoding, start, end) {
+        return this.ccInner.toString(encoding || null, start || null, end || null);
+    }
 
     Buffer.prototype.slice = function(start, end) {
         return this.ccInner.slice(start, end);
@@ -138,12 +142,15 @@ var builtinModules = (function() {
         return this.ccInner.abort();
     };
 
+   
+    
 
 
 
     Request.prototype.setTimeout = function(timeout, callback) {
         return this.ccInner.setTimeout(timeout, callback || null);
     };
+   
     Request.prototype.setNoDelay = function(nodelay) {
         return this.ccInner.setNoDelay(nodelay);
     };
@@ -160,7 +167,13 @@ var builtinModules = (function() {
                 ccnetTimersInstance = container.require.GetService('ccnetTimers'); 
             }
             return ccnetTimersInstance.setTimeout(callback, delay, args);
-        }
+        },
+        clearTimeout : function (t) {
+            if ( !ccnetTimersInstance){
+                ccnetTimersInstance = container.require.GetService('ccnetTimers'); 
+            }
+            return ccnetTimersInstance.clearTimeout(t);
+    }
     };
     
 
@@ -192,9 +205,9 @@ var builtinModules = (function() {
         };
     }
 
+    debugger;
 
-
-    function IncommingMessage(ccInner) {
+    function IncomingMessage(ccInner) {
         this.ccInner = ccInner;
         //this.httpVersion = ccInner.httpVersion;
         this.headers = ccInner.headers;
@@ -202,10 +215,30 @@ var builtinModules = (function() {
         this.isBuffer = true;
         this.length = ccInner.length;
     }
+    inherits(IncomingMessage, EventEmitter);
+
+    inherits(IncomingMessage, Buffer);
+    
+
+    IncomingMessage.prototype.setEncoding = function (enc) {
+        this.ccInner.setEncoding(enc);
+    };
 
 
-    inherits(IncommingMessage, Buffer);
-    //inherits(IncommingMessage, EventEmitter);
+    IncomingMessage.prototype.resume = function () {
+        this.ccInner.resume();
+    };
+
+    IncomingMessage.prototype.pipe = function (dest, options) {
+        return this.ccInner.pipe(dest, options ? options : null);
+    };
+
+    IncomingMessage.prototype.unpipe = function () {
+        var args = Array.prototype.slice(arguments, 2);
+        return this.ccInner.unpipe(arguments);
+    };
+   
+    
 
     var STATUS_CODES = {
         '100': 'Continue',
@@ -266,7 +299,7 @@ var builtinModules = (function() {
         '511': 'Network Authentication Required'
     };
     classes.Buffer = Buffer;
-    classes.IncommingMessage = IncommingMessage;
+    classes.IncomingMessage = IncomingMessage;
     classes.Request = Request;
     classes.EventEmitter = EventEmitter;
 
@@ -292,24 +325,33 @@ var builtinModules = (function() {
 
             var mod = modules[id];
             if (!mod) {
-                console.error(id + ' not found');
-            }
+                var mod = container.require.GetService(id);
+                if (mod == null) {
+                    console.error('module:' + id + ' not found');
+                }
+            } 
             return mod;
         },
-        httpHelper: {
-            createIncomingMessage: function(ccInner) {
-                return new IncommingMessage(ccInner);
-            }
-        },
+      
         fs: {
-            readSync: function() {
+            readSync: function (fn) {
+                
+                return new Buffer();
+            },
+            readFileSync:function (fn, enc) {
+                if (fn.toLowerCase().indexOf('package.json') > -1) {
+                    return new Buffer(JSON.stringify({ version: 1.0 }));
+                }
                 return new Buffer();
             }
         },
         clearCaseHelpers:{
             convertToJsArray:convertToJsArray,
             createArrayCallbackWrapper:createArrayCallbackWrapper,
-            convertToHostArray:convertToHostArray
+            convertToHostArray: convertToHostArray,
+            createIncomingMessage: function (ccInner) {
+                return new IncomingMessage(ccInner);
+            }
         },
         crypto: {
 
@@ -350,5 +392,6 @@ require = builtinModules.require;
 Buffer = require('buffer').Buffer;
 process = require('process');
 setTimeout = require('timers').setTimeout;
+clearTimeout = require('timers').clearTimeout;
 builtinModules = builtinModules;
 

@@ -75,7 +75,7 @@ namespace ClearScript.NodeEmulation
                 }
                 case "ccnetTimers":
                 {
-                    return new NodeTimers(this);
+                    return new NodeTimers(this); 
                 }
                 case "System.Net.Http.HttpClient":
                 {
@@ -99,14 +99,18 @@ namespace ClearScript.NodeEmulation
         public event EventHandler OnReset;
         public void Reset()
         {
-            this.ServiceLocator = null;
-            this.RequestHandlerFactory = null;
+           
             if (OnReset != null)
             {
                 OnReset(this, EventArgs.Empty);
                 OnReset = null;
             }
-        
+
+            this.ServiceLocator = null;
+            this.RequestHandlerFactory = null;
+            this.Engine = null;
+            this.BuiltIns = null;
+            this.RuntimeManager = null;
         }
 
  

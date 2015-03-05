@@ -8,19 +8,28 @@ namespace ClearScript.NodeEmulation
 {
     public class CallBacker
     {
-        public Task T { get; set; }
+        TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+        public Task T
+        {
+            get
+            {
+                return tcs.Task;
+            } 
+        }
         public CallbackDelegate Callback { get; set; }
 
         public CallBacker()
         {
-            T = new Task(new Action(() => { }));
+           
+           
             Callback = CallbackImp;
         }
 
         public delegate void CallbackDelegate(object a = null, object b = null);
         void CallbackImp(object a=null, object b=null)
         {
-            T.Start();
+
+            tcs.SetResult(true);
         }
 
     }

@@ -32,18 +32,29 @@ namespace ClearScript.NodeEmulation
             
         }
 
-        public NodeBuffer Init(string text, string encodingTxt)
+        public NodeBuffer Init(object text= null, object bla= null)
+        {
+            return Init2(text as string, bla as string);
+        }
+
+        public NodeBuffer Init2(string text, string encodingTxt)
         {
 
             this.InnerStream = new MemoryStream();
 
+            Encoding enc = System.Text.Encoding.UTF8;
+            if (!string.IsNullOrEmpty(encodingTxt))
+            {
 
-            var enc = string.IsNullOrWhiteSpace(encodingTxt) ? System.Text.Encoding.UTF8 : Encoding.GetEncoding(encodingTxt);
+                enc = Encoding.GetEncodings().Where( x => string.Equals(x.Name, encodingTxt, StringComparison.OrdinalIgnoreCase)).Select(x=> x.GetEncoding()).FirstOrDefault()
+                      ?? enc;
+            }
+            //var enc = string.IsNullOrWhiteSpace(encodingTxt) ? System.Text.Encoding.UTF8 : Encoding.GetEncoding(encodingTxt);
             //todo: look up encoding.  
             var buf = enc.GetBytes((string)text);
 
             this.InnerStream.Write(buf, 0, buf.Length);
-            return this;
+            return this; 
 
 
 
@@ -138,9 +149,5 @@ namespace ClearScript.NodeEmulation
 
 
 
-        public DynamicMetaObject GetMetaObject(System.Linq.Expressions.Expression parameter)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

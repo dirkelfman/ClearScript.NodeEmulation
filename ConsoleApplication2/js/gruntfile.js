@@ -22,8 +22,8 @@ module.exports = function(grunt) {
                         //debug: true,
 
                         builtins: ['events', 'stream', 'util', 'path', 'url', 'string_decoder', 'events', 'net', 'punycode', 'querystring', 'dgram', 'dns', 'assert', 'tls'],
-
-                       // insertGlobals: '__filename,__dirname'
+                        ignoreMissing:false,
+                        insertGlobals: '__filename,__dirname'
                     }
                 }
             }
