@@ -11,7 +11,7 @@
     <AssemblyName>ClearScript.NodeEmulation</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>01fd6635</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>6d1c98bc</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,7 +35,7 @@
   <ItemGroup>
     <Reference Include="ClearScript, Version=5.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ClearScript.Installer.1.0.5.60\lib\net45\ClearScript.dll</HintPath>
+      <HintPath>..\packages\ClearScript.Installer.1.0.5.65\lib\net45\ClearScript.dll</HintPath>
     </Reference>
     <Reference Include="ClearScript.Manager, Version=1.3.4.26813, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -78,7 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="buildNuget.ps1" />
     <None Include="ClearScript.NodeEmulation.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -90,12 +89,12 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\packages\ClearScript.Installer.1.0.5.60\build\ClearScript.Installer.targets" Condition="Exists('..\packages\ClearScript.Installer.1.0.5.60\build\ClearScript.Installer.targets')" />
+  <Import Project="..\packages\ClearScript.Installer.1.0.5.65\build\ClearScript.Installer.targets" Condition="Exists('..\packages\ClearScript.Installer.1.0.5.65\build\ClearScript.Installer.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\ClearScript.Installer.1.0.5.60\build\ClearScript.Installer.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ClearScript.Installer.1.0.5.60\build\ClearScript.Installer.targets'))" />
+    <Error Condition="!Exists('..\packages\ClearScript.Installer.1.0.5.65\build\ClearScript.Installer.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ClearScript.Installer.1.0.5.65\build\ClearScript.Installer.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
