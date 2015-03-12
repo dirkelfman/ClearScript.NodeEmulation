@@ -28,7 +28,7 @@ namespace ClearScript.NodeEmulation
         public delegate void CallbackDelegate(object a = null, object b = null);
         void CallbackImp(object a=null, object b=null)
         {
-
+            Console.WriteLine(a);
             tcs.SetResult(true);
         }
 

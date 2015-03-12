@@ -21,7 +21,7 @@ module.exports = function(grunt) {
                         commondir: false,
                         //debug: true,
 
-                        builtins: ['events', 'stream', 'util', 'path', 'url', 'string_decoder', 'events', 'net', 'punycode', 'querystring', 'dgram', 'dns', 'assert', 'tls'],
+                        builtins: ['crypto','events', 'stream', 'util', 'path', 'url', 'string_decoder', 'events', 'net', 'punycode', 'querystring', 'dgram', 'dns', 'assert', 'tls'],
                         ignoreMissing:false,
                         insertGlobals: '__filename,__dirname'
                     }

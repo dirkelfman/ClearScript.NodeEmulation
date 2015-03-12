@@ -1,5 +1,5 @@
 ﻿/* global  ccNetEventEmitter,ccnetTimers,ccnetBuffer,ccnetHttpRequest,ccnetProcess, util, ccnetHelpers */
-var builtinModules = (function() {
+var builtinModules = (function () {
 
     // function ccnetBuffer() {}
 
@@ -25,9 +25,9 @@ var builtinModules = (function() {
     function EventEmitter() {
         this.ccInner = container.require.GetService('ccNetEventEmitter');
     }
-    EventEmitter.prototype.on = function(event, listner) {
+    EventEmitter.prototype.on = function (event, listner) {
 
-        this.ccInner.on(event, function() {
+        this.ccInner.on(event, function () {
 
             var arrArray = Array.prototype.slice.call(arguments, 0);
             for (var i = 0; i < arrArray.length; i++) {
@@ -47,26 +47,26 @@ var builtinModules = (function() {
 
     EventEmitter.prototype.addListener = EventEmitter.prototype.on;
 
-    EventEmitter.prototype.once = function(event, listner) {
+    EventEmitter.prototype.once = function (event, listner) {
         return this.ccInner.once(event, listner);
     };
 
-    EventEmitter.prototype.removeAllListeners = function(event) {
+    EventEmitter.prototype.removeAllListeners = function (event) {
         return this.ccInner.removeAllListeners(event);
     };
-    EventEmitter.prototype.setMaxListeners = function(num) {
+    EventEmitter.prototype.setMaxListeners = function (num) {
         return this.ccInner.setMaxListeners(num);
     };
-    EventEmitter.prototype.emit = function() {
+    EventEmitter.prototype.emit = function () {
         return this.ccInner.emit(arguments[1], Array.prototype.slice.call(arguments, 1));
     };
 
     function Buffer() {
- 
+
         this.isBuffer = true;
         this.ccInner = container.require.GetService('ccnetBuffer');
         if (arguments.length === 0) {
-           
+
         } else if (arguments.length == 1) {
             this.ccInner.Init(arguments[0] || null);
         } else if (arguments.length == 2) {
@@ -78,30 +78,127 @@ var builtinModules = (function() {
 
     inherits(Buffer, EventEmitter);
 
+
+    
+
     Buffer.isBuffer = true;
 
-    Buffer.isBuffer = function(obj) {
+    Buffer.isBuffer = function (obj) {
         return obj && obj.isBuffer === true;
     };
-    Buffer.concat = function(list) {
-        return list.length ? list[0] : new Buffer();
+    Buffer.concat = function (list, totalLength) {
+       
+        if (list.length === 0) {
+            return new Buffer(0)
+        } else if (list.length === 1) {
+            return list[0]
+        }
+
+        var i
+        if (totalLength === undefined) {
+            totalLength = 0
+            for (i = 0; i < list.length; i++) {
+                totalLength += list[i].length
+            }
+        }
+
+        var buf = new Buffer(totalLength)
+        var pos = 0
+        for (i = 0; i < list.length; i++) {
+            var item = list[i]
+            item.copy(buf, pos)
+            pos += item.length
+        }
+        return buf
+
+        //if (!list.length) {
+        //    return list[0];
+        //}
+        //var allManaged = !!list[0].ccInner,
+        //    noneManaged = !list[0].ccInner
+        //for (i = 1; i++; i < list.length) {
+        //    allManaged = allManaged && !!list.ccInner;
+        //    noneManaged = noneManaged && !list.ccInner[0];
+        //}
+        //if (allManaged) {
+        //    var buffer = new Buffer(list[0]);
+            
+        //}
+        //return list.length ? list[0] : new Buffer();
     };
-    Buffer.isEncoding = function() {
+
+
+    Buffer.isEncoding = function () {
         return true;
     };
     Buffer.toString = function (encoding, start, end) {
         return this.ccInner.toString(encoding || null, start || null, end || null);
     }
 
-    Buffer.prototype.slice = function(start, end) {
-        return this.ccInner.slice(start, end);
+    Object.defineProperty(Buffer.prototype , "length", { get: function () { return this.ccInner.Length } });
+
+    
+
+    Buffer.prototype.slice = function (start, end) {
+        return this.ccInner.slice(start || null, end || null);
     };
-    Buffer.prototype.copy = function(target, target_start, start, end) {
-        return this.ccInner.copy(target, target_start, start, end);
+    Buffer.prototype.copy = function (target, target_start, start, end) {
+        if (target.ccInner) {
+            return this.ccInner.copy(target.ccInner, target_start || null, start || null, end || null);
+        }
+
+        var self = this // source
+
+        if (!start) start = 0
+        if (!end && end !== 0) end = this.length
+        if (target_start >= target.length) target_start = target.length
+        if (!target_start) target_start = 0
+        if (end > 0 && end < start) end = start
+
+        // Copy 0 bytes; we're done
+        if (end === start) return 0
+        if (target.length === 0 || self.length === 0) return 0
+
+        // Fatal error conditions
+        if (target_start < 0)
+            throw new RangeError('targetStart out of bounds')
+        if (start < 0 || start >= self.length) throw new RangeError('sourceStart out of bounds')
+        if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+        // Are we oob?
+        if (end > this.length)
+            end = this.length
+        if (target.length - target_start < end - start)
+            end = target.length - target_start + start
+
+        var len = end - start
+
+        for (i = start, i < end; i++;) {
+            target[i] = this.ccInner.get(i);
+        }
+        
+        return len
     };
-    Buffer.prototype.toString = function(encoding, start, end) {
-        return this.ccInner.StupidToString(encoding || null, start || null, end || null);
+    Buffer.prototype.toString = function (encoding, start, end) {
+        return this.ccInner._toString(encoding || null, start || null, end || null);
     };
+
+    Buffer.prototype.fill = function (value, offset, end) {
+        return this.ccInner.fill(value || null, offset || null, end || null);
+    }
+    Buffer.prototype.readInt32BE = function (offset, noAssert) {
+        //todo maybe call double...
+        return this.ccInner.readInt32LE(offset || null, noAssert || false);
+    }
+    Buffer.prototype.readInt32LE = function (offset, noAssert) {
+        return this.ccInner.readInt32LE(offset || null, noAssert || false);
+    }
+    Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
+        return this.ccInner.writeInt32BE(value, offset || 0, noAssert || false);
+    }
+    Buffer.prototype.writeInt32LE = function (value, offset, noAssert) {
+        return this.ccInner.writeInt32LE(value, offset || null, noAssert || false);
+    }
 
     function Agent() {
 
@@ -128,54 +225,54 @@ var builtinModules = (function() {
 
     inherits(Request, EventEmitter);
 
-    Request.prototype.write = function(chunk, encoding) {
+    Request.prototype.write = function (chunk, encoding) {
         chunk = !chunk ? null : chunk.ccInner ? chunk.ccInner : chunk;
         return this.ccInner.write(chunk, encoding || null);
     };
 
 
-    Request.prototype.end = function(chunk, encoding) {
+    Request.prototype.end = function (chunk, encoding) {
         chunk = !chunk ? null : chunk.ccInner ? chunk.ccInner : chunk;
         return this.ccInner.end(chunk, encoding || null);
     };
-    Request.prototype.abort = function() {
+    Request.prototype.abort = function () {
         return this.ccInner.abort();
     };
 
-   
-    
 
 
 
-    Request.prototype.setTimeout = function(timeout, callback) {
+
+
+    Request.prototype.setTimeout = function (timeout, callback) {
         return this.ccInner.setTimeout(timeout, callback || null);
     };
-   
-    Request.prototype.setNoDelay = function(nodelay) {
+
+    Request.prototype.setNoDelay = function (nodelay) {
         return this.ccInner.setNoDelay(nodelay);
     };
 
 
     var ccnetTimersInstance = null;
-    
-    var timers  = {
-        setTimeout : function () {
+
+    var timers = {
+        setTimeout: function () {
             var args = Array.prototype.slice(arguments, 2);
             var callback = arguments[0];
             var delay = arguments[1];
-            if ( !ccnetTimersInstance){
-                ccnetTimersInstance = container.require.GetService('ccnetTimers'); 
+            if (!ccnetTimersInstance) {
+                ccnetTimersInstance = container.require.GetService('ccnetTimers');
             }
             return ccnetTimersInstance.setTimeout(callback, delay, args);
         },
-        clearTimeout : function (t) {
-            if ( !ccnetTimersInstance){
-                ccnetTimersInstance = container.require.GetService('ccnetTimers'); 
+        clearTimeout: function (t) {
+            if (!ccnetTimersInstance) {
+                ccnetTimersInstance = container.require.GetService('ccnetTimers');
             }
             return ccnetTimersInstance.clearTimeout(t);
-    }
+        }
     };
-    
+
 
 
     function convertToJsArray(hostArray) {
@@ -186,26 +283,25 @@ var builtinModules = (function() {
     }
 
     function convertToHostArray(jsArray) {
-        jsArray = jsArray||[];
-        var hostArray =  ccnetHelpers.createObjectArray(jsArray.length);
-       
-        for (var i = 0; i < jsArray.Length; i++)
-            {
-                hostArray[i]=jsArray[i];
-            }
+        jsArray = jsArray || [];
+        var hostArray = ccnetHelpers.createObjectArray(jsArray.length);
+
+        for (var i = 0; i < jsArray.Length; i++) {
+            hostArray[i] = jsArray[i];
+        }
         return hostArray;
     }
 
 
-    function createArrayCallbackWrapper(hostFn){
-        return function (){
+    function createArrayCallbackWrapper(hostFn) {
+        return function () {
             var jArray = Array.prototype.slice.call(arguments, 0),
              hostArray = convertToHostArray(jArray);
             hostFn(hostArray);
         };
     }
 
-    debugger;
+
 
     function IncomingMessage(ccInner) {
         this.ccInner = ccInner;
@@ -218,7 +314,7 @@ var builtinModules = (function() {
     inherits(IncomingMessage, EventEmitter);
 
     inherits(IncomingMessage, Buffer);
-    
+
 
     IncomingMessage.prototype.setEncoding = function (enc) {
         this.ccInner.setEncoding(enc);
@@ -237,8 +333,8 @@ var builtinModules = (function() {
         var args = Array.prototype.slice(arguments, 2);
         return this.ccInner.unpipe(arguments);
     };
-   
-    
+
+
 
     var STATUS_CODES = {
         '100': 'Continue',
@@ -305,23 +401,23 @@ var builtinModules = (function() {
 
 
     var process = {
-        nextTick: function(callback) {
+        nextTick: function (callback) {
             if (!process.ccProcess) {
-                process.ccProcess = container.require.GetService('ccnetProcess'); 
+                process.ccProcess = container.require.GetService('ccnetProcess');
             }
-            
-            process.ccProcess.nextTick(function(){
+
+            process.ccProcess.nextTick(function () {
                 callback();
             });
         },
         env: {}
     };
-    
+
 
 
     var modules = {
         container: container,
-        require: function(id) {
+        require: function (id) {
 
             var mod = modules[id];
             if (!mod) {
@@ -329,25 +425,25 @@ var builtinModules = (function() {
                 if (mod == null) {
                     console.error('module:' + id + ' not found');
                 }
-            } 
+            }
             return mod;
         },
-      
+
         fs: {
             readSync: function (fn) {
-                
+
                 return new Buffer();
             },
-            readFileSync:function (fn, enc) {
+            readFileSync: function (fn, enc) {
                 if (fn.toLowerCase().indexOf('package.json') > -1) {
                     return new Buffer(JSON.stringify({ version: 1.0 }));
                 }
                 return new Buffer();
             }
         },
-        clearCaseHelpers:{
-            convertToJsArray:convertToJsArray,
-            createArrayCallbackWrapper:createArrayCallbackWrapper,
+        clearCaseHelpers: {
+            convertToJsArray: convertToJsArray,
+            createArrayCallbackWrapper: createArrayCallbackWrapper,
             convertToHostArray: convertToHostArray,
             createIncomingMessage: function (ccInner) {
                 return new IncomingMessage(ccInner);
@@ -361,7 +457,7 @@ var builtinModules = (function() {
         },
         timers: timers,
         process: process,
-        _process: process, 
+        _process: process,
         util: util,
         buffer: {
             Buffer: Buffer,

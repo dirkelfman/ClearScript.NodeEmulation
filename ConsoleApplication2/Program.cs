@@ -88,7 +88,7 @@ namespace ConsoleApplication2
 
             //                                  });
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 1; i++)
             {
                 Task t = new Task(() => main2());
                 t.Start();
@@ -217,7 +217,7 @@ namespace ConsoleApplication2
            // var rateProvider = rateProviderFactory.getRateProvider();
 
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1; i++)
             {
                 var cb = new CallBacker();
                 var pb = new PropertyBag();
