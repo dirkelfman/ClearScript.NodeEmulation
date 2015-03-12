@@ -14850,8 +14850,18 @@ RateProvider.prototype.getRatesAsync = function (props, callback) {
     var md5sum = crypto.createHash('md5');
     md5sum.update("password1234");
     var d = md5sum.digest('hex');
-    //var assert = require('assert');
-  //  assert.equal(d, 'bdc87b9c894da5168059e00ebffb9077');
+    var assert = require('assert');
+    assert.equal(d, 'bdc87b9c894da5168059e00ebffb9077');
+
+
+    var shaSum = crypto.createHash('sha256');
+    var shaBuff = new Buffer('password1234');
+    shaSum.update(shaBuff);
+    var shawHash = shaSum.digest('hex');
+
+    assert.equal(shawHash, 'b9c950640e1b3740e98acb93e669c65766f6670dd1609ba91ff41052ba48c6f3');
+    
+
 
     process.nextTick(function () {
         callback(null, d);
@@ -14891,5 +14901,5 @@ var rateProvider = {
 module.exports = rateProvider;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/projects\\sdk\\ClearScript.NodeEmulation\\ConsoleApplication2\\js\\rateProvider.js","/projects\\sdk\\ClearScript.NodeEmulation\\ConsoleApplication2\\js")
-},{"_process":undefined,"buffer":undefined,"crypto":6}]},{},[128])(128)
+},{"_process":undefined,"assert":1,"buffer":undefined,"crypto":6}]},{},[128])(128)
 });

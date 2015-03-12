@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 
 namespace ClearScript.NodeEmulation
@@ -70,56 +71,15 @@ namespace ClearScript.NodeEmulation
 
         }
 
-        Encoding GetEncoding(string encoding)
+        NodeEncoding GetEncoding(string encoding)
         {
-            Encoding enc = System.Text.Encoding.UTF8;
-            if (!string.IsNullOrEmpty(encoding))
-            {
-                
-                enc = Encoding.GetEncodings().Where(x => string.Equals(x.Name, encoding, StringComparison.OrdinalIgnoreCase)).Select(x => x.GetEncoding()).FirstOrDefault()
-                      ?? enc;
-            }
-
-           
-            
-            return enc;
+            return NodeEncoding.GetEncoding(encoding);
         }
 
-        class NumberStringEncoding : Encoding 
-        {
-            public string EncodingType { get; set; }
-            public override int GetByteCount(char[] chars, int index, int count)
-            {
-                throw new NotImplementedException();
-            }
+       
 
-            public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
-            {
-                throw new NotImplementedException();
-            }
 
-            public override int GetCharCount(byte[] bytes, int index, int count)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
-            {
-                var str = System.Text.Encoding.UTF8.GetChars(bytes, byteIndex, byteCount, chars, charIndex);
-
-                throw new NotImplementedException();
-            }
-
-            public override int GetMaxByteCount(int charCount)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int GetMaxCharCount(int byteCount)
-            {
-                throw new NotImplementedException();
-            }
-        }
+      
         public void Write(string txt, int? offset, int? length=null, string encoding = null)
         {
             var o = offset.GetValueOrDefault(0);
@@ -132,32 +92,22 @@ namespace ClearScript.NodeEmulation
         public void writeInt32LE(int value, int? o = 0,  bool? noAssert = false)
         {
             var offset = o.GetValueOrDefault(0);
-            var byteLength = 4;
-            
-            int TmpValue = value;
-            if (byteLength > 1)
-            {
-                InnerBuffer[offset] = (byte)TmpValue;
-            }
+            InnerBuffer[0 + offset] = (byte)value;
+            InnerBuffer[1 + offset] = (byte)(value >> 8);
+            InnerBuffer[2 + offset] = (byte)(value >> 16);
+            InnerBuffer[3 + offset] = (byte)(value >> 24);
 
-            for (int i = 1; i < byteLength; i++)
-            {
-                InnerBuffer[offset + i] = (byte)(TmpValue >> (i * 8));
-            }
         }
-        public void writeInt32BE(double value, int offset = 0, int byteLength = 0, bool noAssert = false)
+        public void writeInt32BE(int value, int? o = 0,  bool? noAssert = false)
         {
-            ulong TmpValue =(ulong)value;
+            var offset = o.GetValueOrDefault(0);
+            
+            
+            InnerBuffer[3+offset ] = (byte)value;
+            InnerBuffer[2 + offset] = (byte)(value >> 8);
+            InnerBuffer[1 + offset] = (byte)(value >> 16);
+            InnerBuffer[0 + offset] = (byte)(value >> 24);
 
-            if (byteLength > 1)
-            {
-                InnerBuffer [offset] = (byte)TmpValue;    
-            }
-
-            for (int i = 1; i < byteLength; i++)
-            {
-                InnerBuffer[offset+i] = (byte)(TmpValue >> (i * 8));
-            }
            
         }
 
@@ -167,7 +117,15 @@ namespace ClearScript.NodeEmulation
 
             var num = (int)this.InnerBuffer[0 + offset] | (int)InnerBuffer[1 + offset] << 8 | (int)InnerBuffer[2 + offset] << 16 | (int)InnerBuffer[3 + offset] << 24;
             return num;
-             
+        
+        }
+        public int readInt32BE(int? os = 0, bool? noAssert = false)
+        {
+            var offset = os.GetValueOrDefault(0);
+
+            var num = (int)this.InnerBuffer[3 + offset] | (int)InnerBuffer[2 + offset] << 8 | (int)InnerBuffer[1 + offset] << 16 | (int)InnerBuffer[0 + offset] << 24;
+            return num;
+
         }
 
        
@@ -178,16 +136,7 @@ namespace ClearScript.NodeEmulation
             var s = start.GetValueOrDefault(0);
             var e = end.GetValueOrDefault(this.Length);
             
-            if (encoding == "hex")
-            {
-                return BitConverter.ToString(this.InnerBuffer, s, e).Replace("-", String.Empty).ToLowerInvariant();
-
-            }
-            if (encoding == "base64")
-            {
-                return Convert.ToBase64String(this.InnerBuffer, s, e);
-            }
-
+            
 
             return  enc.GetString(this.InnerBuffer, s, e);
             
@@ -250,7 +199,7 @@ namespace ClearScript.NodeEmulation
 
         public void copy(DynamicObject target, int? targetStart = null, int? sourceStart = null, int? sourceEnd = null)
         {
-        throw  new NotImplementedException("xxx");
+            throw  new NotImplementedException("xxx");
         
              
 
@@ -266,7 +215,117 @@ namespace ClearScript.NodeEmulation
     }
 
 
+    public  class NodeEncoding
+    {
+       
+        private Func<byte[],int,int, string> ToStringFn;
+        private Func<string, byte[]> ToByteFn; 
+        static string ToHexString(byte[] val, int offset, int len)
+        {
+            return BitConverter.ToString(val, offset, len).Replace("-", String.Empty).ToLowerInvariant();
+        }
 
+        static string ToBase64String(byte[] val, int offset, int len)
+        {
+            return Convert.ToBase64String(val, offset, len);
+        }
+
+        static string ToUtf8String(byte[] val, int offset, int len)
+        {
+            return System.Text.Encoding.UTF8.GetString(val, offset, len);
+        }
+        static string ToAsciiString(byte[] val, int offset, int len)
+        {
+            return System.Text.Encoding.ASCII.GetString(val, offset, len);
+        }
+        static string ToUtf16LEString(byte[] val, int offset, int len)
+        {
+            return System.Text.Encoding.Unicode.GetString(val, offset, len);
+        }
+
+        public string GetString(byte[] val, int offset, int len)
+        {
+            return ToStringFn(val, offset, len);
+        }
+
+        public byte[] GetBytes(string text)
+        {
+            return ToByteFn(text);
+        }
+
+        public static NodeEncoding GetEncoding(string encoding)
+        {
+            NodeEncoding enc = new NodeEncoding();
+            enc.ToByteFn = System.Text.Encoding.UTF8.GetBytes;
+            enc.ToStringFn = ToUtf8String;
+            if (string.IsNullOrEmpty(encoding))
+            {
+                return enc;
+            }
+            switch (encoding.ToLowerInvariant())
+            {
+                case "hex":
+                {
+                    enc.ToStringFn = ToHexString;
+                    break;
+                }
+                
+                case "ascii":
+                {
+                    enc.ToStringFn = ToAsciiString;
+                    enc.ToByteFn = System.Text.Encoding.ASCII.GetBytes;
+                    break;
+                }
+                case "binary":
+                {
+                    throw new NotImplementedException("binary encoding not implemented");
+                }
+                case "base64":
+                {
+                    enc.ToStringFn = ToAsciiString;
+                    break;
+                }
+                case "raw":
+                {
+                    throw new NotImplementedException("raw encoding not implemented");
+                }
+                case "ucs2":
+                case "ucs-2":
+                case "utf16le":
+                case "utf-16le":
+                {
+                    enc.ToStringFn = ToUtf16LEString;
+                    enc.ToByteFn = System.Text.Encoding.Unicode.GetBytes;
+                    break;
+
+                }
+
+
+            }
+            return enc;
+        }
+
+        public static bool isEncoding(string encoding)
+        {
+            switch (encoding.ToLowerInvariant())
+            {
+                case "hex":
+                case "utf8":
+                case "utf-8":
+                case "ascii":
+               // case "binary":
+                case "base64":
+               // case "raw":
+                case "ucs2":
+                case "ucs-2":
+                case "utf16le":
+                case "utf-16le":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
 
     public class NodeBuffer : NodeEventEmitter
     {

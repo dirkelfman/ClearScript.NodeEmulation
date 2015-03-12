@@ -187,8 +187,7 @@ var builtinModules = (function () {
         return this.ccInner.fill(value || null, offset || null, end || null);
     }
     Buffer.prototype.readInt32BE = function (offset, noAssert) {
-        //todo maybe call double...
-        return this.ccInner.readInt32LE(offset || null, noAssert || false);
+        return this.ccInner.readInt32BE(offset || null, noAssert || false);
     }
     Buffer.prototype.readInt32LE = function (offset, noAssert) {
         return this.ccInner.readInt32LE(offset || null, noAssert || false);
