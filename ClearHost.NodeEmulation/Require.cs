@@ -63,7 +63,7 @@ namespace ClearScript.NodeEmulation
             {
                 case "ccnetBuffer":
                 {
-                    return new NodeBuffer2(this);
+                    return new NodeBuffer(this);
                 }
                 case "ccnetHttpRequest":
                 {

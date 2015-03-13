@@ -8,17 +8,22 @@ using System.Text;
 
 namespace ClearScript.NodeEmulation
 {
-    public class NodeBuffer2 : NodeEventEmitter
+    public class NodeBuffer : NodeEventEmitter
     {
         public bool isCCnetBuffer = true;
         private readonly Require _require;
 
-        public virtual string clientWrapperClass
+        public override  string clientWrapperClass
         {
             get { return "Buffer"; }
         }
 
-        public NodeBuffer2(Require require)
+        public dynamic  CreateJsWrapper()
+        {
+            return _require.BuiltIns.clearCaseHelpers.createBuffer(this);
+        }
+
+        public NodeBuffer(Require require)
             : base(require)
         {
             //  InnerStream = new M;
@@ -51,7 +56,7 @@ namespace ClearScript.NodeEmulation
 
         public void Init(object  o)
         {
-            var otherBuffer = o as NodeBuffer2;
+            var otherBuffer = o as NodeBuffer;
             if (otherBuffer == null)
             {
                 throw new NotImplementedException("xxx");
@@ -101,12 +106,14 @@ namespace ClearScript.NodeEmulation
         public void writeInt32BE(int value, int? o = 0,  bool? noAssert = false)
         {
             var offset = o.GetValueOrDefault(0);
-            
-            
-            InnerBuffer[3+offset ] = (byte)value;
-            InnerBuffer[2 + offset] = (byte)(value >> 8);
-            InnerBuffer[1 + offset] = (byte)(value >> 16);
+
             InnerBuffer[0 + offset] = (byte)(value >> 24);
+            InnerBuffer[1 + offset] = (byte)(value >> 16);
+            InnerBuffer[2 + offset] = (byte)(value >> 8);
+            InnerBuffer[3 + offset] = (byte)value;
+            
+            
+            
 
            
         }
@@ -129,7 +136,7 @@ namespace ClearScript.NodeEmulation
         }
 
        
-
+        
         public string _toString(string encoding = null, int? start = null, int? end = null)
         {
             var enc = this.GetEncoding(encoding);
@@ -141,15 +148,24 @@ namespace ClearScript.NodeEmulation
             return  enc.GetString(this.InnerBuffer, s, e);
             
         }
+        [Microsoft.ClearScript.ScriptMember("toString")]
+        public string Blurg(string encoding = null, int? start = null, int? end = null)
+        {
+            return _toString(encoding, start, end);
+
+        }
+     
 
 
-        public NodeBuffer2 slice(int? start = null, int? end = null)
+
+
+        public NodeBuffer slice(int? start = null, int? end = null)
         {
             var s = start.GetValueOrDefault(0);
             var e = end.GetValueOrDefault(this.Length);
             if (s == 0)
             {
-                return new NodeBuffer2(require: this._require)
+                return new NodeBuffer(require: this._require)
                        {
                            InnerBuffer = this.InnerBuffer,
                            Length = e
@@ -160,7 +176,7 @@ namespace ClearScript.NodeEmulation
 
             Array.Copy(InnerBuffer, s,  buff,0, e - s);
 
-            return new NodeBuffer2(require: this._require)
+            return new NodeBuffer(require: this._require)
             {
                 InnerBuffer = buff,
                 Length = e - s
@@ -181,7 +197,7 @@ namespace ClearScript.NodeEmulation
             }
         }
 
-        public void copy(NodeBuffer2 target, int? targetStart = null, int? sourceStart = null, int? sourceEnd = null)
+        public void copy(NodeBuffer target, int? targetStart = null, int? sourceStart = null, int? sourceEnd = null)
         {
             var ts = targetStart.GetValueOrDefault(0);
             var ss = sourceStart.GetValueOrDefault(0);
@@ -205,12 +221,22 @@ namespace ClearScript.NodeEmulation
 
         }
 
-        public int get(int pos)
+        public sbyte? get(int pos)
         {
-            //may uint?
-            return (int) this.InnerBuffer[pos];
+            if (pos > InnerBuffer.Length)
+            {
+                return null;
+            }
+            return (sbyte)this.InnerBuffer[pos];
         }
-
+        public void set(int pos, object value)
+        {
+            if (pos > InnerBuffer.Length)
+            {
+                return ;
+            }
+            this.InnerBuffer[pos] = Convert.ToByte(value);
+        }
 
     }
 
@@ -327,216 +353,216 @@ namespace ClearScript.NodeEmulation
         }
     }
 
-    public class NodeBuffer : NodeEventEmitter
-    {
-        private readonly Require _require;
+    //public class NodeBuffer23 : NodeEventEmitter
+    //{
+    //    private readonly Require _require;
 
-        public bool isCCnetBuffer = true;
+    //    public bool isCCnetBuffer = true;
 
-        public virtual string clientWrapperClass
-        {
-            get { return "Buffer"; }
-        }
+    //    public virtual string clientWrapperClass
+    //    {
+    //        get { return "Buffer"; }
+    //    }
 
-        public static bool isEncoding(string isEncoding)
-        {
-            System.Diagnostics.Debug.WriteLine("isEncoding", isEncoding);
-            return true;
+    //    public static bool isEncoding(string isEncoding)
+    //    {
+    //        System.Diagnostics.Debug.WriteLine("isEncoding", isEncoding);
+    //        return true;
 
-        }
+    //    }
 
 
-        public NodeBuffer Init(string param1)
-        {
-            return this.Init(param1, "utf-8");
+    //    public NodeBuffer23 Init(string param1)
+    //    {
+    //        return this.Init(param1, "utf-8");
 
-        }
+    //    }
 
-        public NodeBuffer Init(int size)
-        {
-            this.InnerStream = new MemoryStream(size);
-            return this;
-        }
+    //    public NodeBuffer23 Init(int size)
+    //    {
+    //        this.InnerStream = new MemoryStream(size);
+    //        return this;
+    //    }
 
-        public void writeInt32BE(int value, int offset = 0, bool noAssert = false)
-        {
-            byte[] buff = new byte[4];
-            buff[0] = (byte)value;
-            buff[1] = (byte)(value >> 8);
-            buff[2] = (byte)(value >> 16);
-            buff[3] = (byte)(value >> 24);
+    //    public void writeInt32BE(int value, int offset = 0, bool noAssert = false)
+    //    {
+    //        byte[] buff = new byte[4];
+    //        buff[0] = (byte)value;
+    //        buff[1] = (byte)(value >> 8);
+    //        buff[2] = (byte)(value >> 16);
+    //        buff[3] = (byte)(value >> 24);
             
 
-            if (this.InnerStream.CanSeek)
-            {
-                var pos = this.InnerStream.Position;
-                this.InnerStream.Position = offset;
-                this.InnerStream.Write(buff, 0, buff.Length);
-                this.InnerStream.Position = pos;
-            }
-            else
-            {
-                this.InnerStream.Write(buff, 0, buff.Length);
-            }
+    //        if (this.InnerStream.CanSeek)
+    //        {
+    //            var pos = this.InnerStream.Position;
+    //            this.InnerStream.Position = offset;
+    //            this.InnerStream.Write(buff, 0, buff.Length);
+    //            this.InnerStream.Position = pos;
+    //        }
+    //        else
+    //        {
+    //            this.InnerStream.Write(buff, 0, buff.Length);
+    //        }
 
-        }
+    //    }
 
        
 
-        public int readInt32BE(int offset = 0, bool noAssert = false)
-        {
-            byte[] buff = new byte[4];
+    //    public int readInt32BE(int offset = 0, bool noAssert = false)
+    //    {
+    //        byte[] buff = new byte[4];
            
            
            
-            if (this.InnerStream.CanSeek)
-            {
-                var pos = this.InnerStream.Position;
-                this.InnerStream.Position = offset;
-                this.InnerStream.Read(buff, 0, buff.Length);
-                this.InnerStream.Position = pos;
-            }
-            else
-            {
-                this.InnerStream.Read(buff, 0, buff.Length);
-            }
+    //        if (this.InnerStream.CanSeek)
+    //        {
+    //            var pos = this.InnerStream.Position;
+    //            this.InnerStream.Position = offset;
+    //            this.InnerStream.Read(buff, 0, buff.Length);
+    //            this.InnerStream.Position = pos;
+    //        }
+    //        else
+    //        {
+    //            this.InnerStream.Read(buff, 0, buff.Length);
+    //        }
 
            
             
-            var num = (int)buff[0] | (int)buff[1] << 8 | (int)buff[2] << 16 | (int)buff[3] << 24;
-            return num;
-        }
+    //        var num = (int)buff[0] | (int)buff[1] << 8 | (int)buff[2] << 16 | (int)buff[3] << 24;
+    //        return num;
+    //    }
 
 
 
 
-        public NodeBuffer Init(object text = null, object bla = null)
-        {
-            return Init2(text as string, bla as string);
-        }
+    //    public NodeBuffer Init(object text = null, object bla = null)
+    //    {
+    //        return Init2(text as string, bla as string);
+    //    }
 
-        public NodeBuffer Init2(string text, string encodingTxt)
-        {
+    //    public NodeBuffer Init2(string text, string encodingTxt)
+    //    {
 
-            this.InnerStream = new MemoryStream();
+    //        this.InnerStream = new MemoryStream();
 
-            Encoding enc = System.Text.Encoding.UTF8;
-            if (!string.IsNullOrEmpty(encodingTxt))
-            {
+    //        Encoding enc = System.Text.Encoding.UTF8;
+    //        if (!string.IsNullOrEmpty(encodingTxt))
+    //        {
 
-                enc = Encoding.GetEncodings().Where(x => string.Equals(x.Name, encodingTxt, StringComparison.OrdinalIgnoreCase)).Select(x => x.GetEncoding()).FirstOrDefault()
-                      ?? enc;
-            }
-            //var enc = string.IsNullOrWhiteSpace(encodingTxt) ? System.Text.Encoding.UTF8 : Encoding.GetEncoding(encodingTxt);
-            //todo: look up encoding.  
-            if (text != null)
-            {
-                var buf = enc.GetBytes((string)text);
-                this.InnerStream.Write(buf, 0, buf.Length);
-            }
-            return this;
-
-
-
-
-        }
-
-
-        public NodeBuffer(Require require)
-            : base(require)
-        {
-            //  InnerStream = new M;
-            _require = require;
-        }
-
-
-
-        public static bool isBuffer(object obj)
-        {
-            return obj is NodeBuffer;
-        }
-
-
-        public NodeBuffer slice(int? start = null, int? end = null)
-        {
-            if (start == null && end == null)
-            {
-                return this;
-            }
-            throw new NotImplementedException();
-
-        }
-
-        public void fill(string value, int? offset, int? end)
-        {
-            if (value != null)
-            {
-                var buf = System.Text.Encoding.UTF8.GetBytes((string)value);
-                this.InnerStream.Write(buf, 0, buf.Length);
-            }
-        }
-
-        public Stream InnerStream { get; set; }
-
-
-
-        public string StupidToString(object enc = null, int? start = null, int? end = null)
-        {
-            return this.toString(enc, start, end);
-        }
-
-        public string toString(object enc = null, int? start = null, int? end = null)
-        {
-            string encoding = null;
-            long pos = 0;
-            string ret = null;
-            if (this.InnerStream.CanSeek)
-            {
-                pos = this.InnerStream.Position;
-                this.InnerStream.Position = 0;
-
-            }
-            if (string.IsNullOrWhiteSpace(encoding))
-            {
-                ret = new StreamReader(this.InnerStream, true).ReadToEnd();
-            }
-            else
-            {
-                ret = new StreamReader(this.InnerStream, System.Text.Encoding.GetEncoding(encoding)).ReadToEnd();
-            }
-            if (this.InnerStream.CanSeek)
-            {
-                this.InnerStream.Position = pos;
-            }
-            return ret;
-
-        }
-
-        public void copy(NodeBuffer target, int? targetStart = null, int? sourceStart = null, int? sourceEnd = null)
-        {
-            this.InnerStream.CopyTo(target.InnerStream);
-
-        }
-
-        private long? _length;
-
-        public virtual long length
-        {
-
-            get
-            {
-                if (_length.HasValue)
-                {
-                    return _length.Value;
-                }
-                return this.InnerStream.Length;
-
-            }
-            set { _length = value; }
-        }
+    //            enc = Encoding.GetEncodings().Where(x => string.Equals(x.Name, encodingTxt, StringComparison.OrdinalIgnoreCase)).Select(x => x.GetEncoding()).FirstOrDefault()
+    //                  ?? enc;
+    //        }
+    //        //var enc = string.IsNullOrWhiteSpace(encodingTxt) ? System.Text.Encoding.UTF8 : Encoding.GetEncoding(encodingTxt);
+    //        //todo: look up encoding.  
+    //        if (text != null)
+    //        {
+    //            var buf = enc.GetBytes((string)text);
+    //            this.InnerStream.Write(buf, 0, buf.Length);
+    //        }
+    //        return this;
 
 
 
 
-    }
+    //    }
+
+
+    //    public NodeBuffer23(Require require)
+    //        : base(require)
+    //    {
+    //        //  InnerStream = new M;
+    //        _require = require;
+    //    }
+
+
+
+    //    public static bool isBuffer(object obj)
+    //    {
+    //        return obj is NodeBuffer;
+    //    }
+
+
+    //    public NodeBuffer slice(int? start = null, int? end = null)
+    //    {
+    //        if (start == null && end == null)
+    //        {
+    //            return this;
+    //        }
+    //        throw new NotImplementedException();
+
+    //    }
+
+    //    public void fill(string value, int? offset, int? end)
+    //    {
+    //        if (value != null)
+    //        {
+    //            var buf = System.Text.Encoding.UTF8.GetBytes((string)value);
+    //            this.InnerStream.Write(buf, 0, buf.Length);
+    //        }
+    //    }
+
+    //    public Stream InnerStream { get; set; }
+
+
+
+    //    public string StupidToString(object enc = null, int? start = null, int? end = null)
+    //    {
+    //        return this.toString(enc, start, end);
+    //    }
+
+    //    public string toString(object enc = null, int? start = null, int? end = null)
+    //    {
+    //        string encoding = null;
+    //        long pos = 0;
+    //        string ret = null;
+    //        if (this.InnerStream.CanSeek)
+    //        {
+    //            pos = this.InnerStream.Position;
+    //            this.InnerStream.Position = 0;
+
+    //        }
+    //        if (string.IsNullOrWhiteSpace(encoding))
+    //        {
+    //            ret = new StreamReader(this.InnerStream, true).ReadToEnd();
+    //        }
+    //        else
+    //        {
+    //            ret = new StreamReader(this.InnerStream, System.Text.Encoding.GetEncoding(encoding)).ReadToEnd();
+    //        }
+    //        if (this.InnerStream.CanSeek)
+    //        {
+    //            this.InnerStream.Position = pos;
+    //        }
+    //        return ret;
+
+    //    }
+
+    //    public void copy(NodeBuffer target, int? targetStart = null, int? sourceStart = null, int? sourceEnd = null)
+    //    {
+    //        this.InnerStream.CopyTo(target.InnerStream);
+
+    //    }
+
+    //    private long? _length;
+
+    //    public virtual long length
+    //    {
+
+    //        get
+    //        {
+    //            if (_length.HasValue)
+    //            {
+    //                return _length.Value;
+    //            }
+    //            return this.InnerStream.Length;
+
+    //        }
+    //        set { _length = value; }
+    //    }
+
+
+
+
+    //}
 }

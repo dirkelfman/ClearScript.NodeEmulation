@@ -32,6 +32,13 @@ namespace ClearScript.NodeEmulation
 
         }
 
+
+        public virtual  string clientWrapperClass
+        {
+            get { return "EventEmitter"; }
+        }
+
+
         private Dictionary<string, List<Tuple<dynamic,bool>>> _listeners = new Dictionary<string, List<Tuple<dynamic, bool>>>();
 
         public NodeEventEmitter addListener(string eventName, DynamicObject listener)

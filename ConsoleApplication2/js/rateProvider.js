@@ -30,47 +30,48 @@ RateProvider.prototype.getRatesAsync = function (props, callback) {
 
 
     var crypto = require('crypto');
-
-    debugger;
-    var md5sum = crypto.createHash('md5');
-    md5sum.update("password1234");
-    var d = md5sum.digest('hex');
     var assert = require('assert');
-    assert.equal(d, 'bdc87b9c894da5168059e00ebffb9077');
+    debugger;
+    //var md5sum = crypto.createHash('md5');
+    //md5sum.update("password1234");
+    //var d = md5sum.digest('hex');
+   
+    //assert.equal(d, 'bdc87b9c894da5168059e00ebffb9077');
 
 
     var shaSum = crypto.createHash('sha256');
     var shaBuff = new Buffer('password1234');
+    var g=shaBuff[0];
     shaSum.update(shaBuff);
     var shawHash = shaSum.digest('hex');
 
-    assert.equal(shawHash, 'b9c950640e1b3740e98acb93e669c65766f6670dd1609ba91ff41052ba48c6f3');
-    
+    //assert.equal(shawHash, 'b9c950640e1b3740e98acb93e669c65766f6670dd1609ba91ff41052ba48c6f3');
 
+    console.log(shawHash);
 
-    process.nextTick(function () {
-        callback(null, d);
-    });
+    //process.nextTick(function () {
+    //    callback(null, shawHash);
+    //});
 
     //debugger;
-    //var client = require('mozu-node-sdk').client();
-    //function log(result) {
-    //    callback(null);
-    //}
+    var client = require('mozu-node-sdk').client();
+    function log(result) {
+        callback(null);
+    }
 
-    //function reportError(error) {
-    //    console.error(error&& error.stack ? error.stack : error);
-    //    callback(null);
-    //}
+    function reportError(error) {
+        console.error(error&& error.stack ? error.stack : error);
+        callback(null);
+    }
 
-    //var productsClient= client.commerce().catalog().admin().product();
-    //productsClient.getProduct({
-    //    productCode: 'MS-CAR-RAK-006'
-    //}).then(log, reportError);
+    var productsClient= client.commerce().catalog().admin().product();
+    productsClient.getProduct({
+        productCode: 'MS-CAR-RAK-006'
+    }).then(log, reportError);
 
 
 }
-debugger;
+
 
 var rateProvider = {
     RateProvider: RateProvider,

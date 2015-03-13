@@ -34,7 +34,12 @@ namespace ClearScript.NodeEmulation
         private CancellationTokenSource _cancellationTokenSource;
       
         public bool isCCnetHttpRequest = true;
-      
+
+        internal HttpRequestMessage RequestMessage
+        {
+            get { return _requestMessage; }
+        }
+
         public void Init (DynamicObject options = null, dynamic callback = null) 
         {
            
@@ -97,23 +102,9 @@ namespace ClearScript.NodeEmulation
             }
         }
 
+        
 
-
-
-
-        public void write(string text, string encoding = null)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return;
-            }
-
-
-            var nodeBuffer = new NodeBuffer(this.Require).Init(text, encoding);
-            write(nodeBuffer, null);
-        }
-
-        public void write(NodeBuffer data, string encoding = null)
+        public void write(NodeBuffer data, string encoding = null, dynamic cb = null)
         {
             var method = Method;
             if (!string.Equals(method,"post", StringComparison.OrdinalIgnoreCase)&&
@@ -129,11 +120,29 @@ namespace ClearScript.NodeEmulation
                     _requestStream = new MemoryStream();
                     this._requestMessage.Content = new StreamContent(_requestStream);
                 }
-                var pos = data.InnerStream.Position;
-                data.InnerStream.Position = 0;
-                data.InnerStream.CopyTo(_requestStream);
-                data.InnerStream.Position = pos;
-                //_requestStream.Write(data, 0, data.Length);
+                _requestStream.Write(data.InnerBuffer, 0, data.Length);
+               
+            }
+        }
+
+        public void write(string value, string encoding = null, dynamic cb = null)
+        {
+            var method = Method;
+            if (!string.Equals(method, "post", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(method, "put", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+            if (!string.IsNullOrEmpty(value))
+            {
+                if (_requestStream == null)
+                {
+                    _requestStream = new MemoryStream();
+                    this._requestMessage.Content = new StreamContent(_requestStream);
+                }
+                var enc = NodeEncoding.GetEncoding(encoding);
+                var bytes = enc.GetBytes(value);
+                _requestStream.Write(bytes, 0, bytes.Length);
             }
         }
 

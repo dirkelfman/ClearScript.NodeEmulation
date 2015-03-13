@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace ClearScript.NodeEmulation
 {
-    public class NodeHttpResponse : NodeBuffer 
+    public class NodeHttpResponse : NodeEventEmitter 
     {
         private readonly Task<HttpResponseMessage> resp;
         private bool _dataFired;
@@ -39,6 +39,7 @@ namespace ClearScript.NodeEmulation
                 }
                 this.headers.Keys.ToList().ForEach(x=> this.headers[x.ToLowerInvariant()]=this.headers[x]);
             }
+            //todo handle connect errors;
             JsWrapper = nodeHttpRequest.Require.BuiltIns.clearCaseHelpers.createIncomingMessage(this);
         }
 
@@ -54,27 +55,111 @@ namespace ClearScript.NodeEmulation
 
         public object raw { get; set; }
         public object body { get; set; }
-      //  public object bytes { get; set; }
-        public string httpVersion { get; set; }
-        public PropertyBag  headers { get; set; }
-        public int statusCode { get; set; }
 
-        public override long length
+
+
+//        Event: 'readable'
+//Event: 'data'
+//Event: 'end'
+//Event: 'close'
+//Event: 'error'
+//readable.read([size])
+//readable.setEncoding(encoding)
+//readable.resume()
+//readable.pause()
+//readable.isPaused()
+//readable.pipe(destination[, options])
+//readable.unpipe([destination])
+//readable.unshift(chunk)
+//readable.wrap(stream)
+
+//        Event: 'close'
+//message.httpVersion
+//message.headers
+//message.rawHeaders
+//message.trailers
+//message.rawTrailers
+//message.setTimeout(msecs, callback)
+//message.method
+//message.url
+//message.statusCode
+//message.statusMessage
+//message.socket
+
+        public dynamic read(long? size = null)
         {
-            get
-            {
-                if (resp.IsCompleted && resp.Result.Content != null && resp.Result.Content.Headers.ContentLength.HasValue)
-                {
-                    return resp.Result.Content.Headers.ContentLength.Value;
-                }
-                if (InnerStream != null && InnerStream.CanSeek)
-                {
-                    return InnerStream.Length;
-                }
-                return 1024*4;
-            }
+            var nb = readNodeBuffer(size);
+            var jb = nb.CreateJsWrapper();
+            emit("json", jb);
+            return jb;
         }
 
+        private NodeBuffer readNodeBuffer(long? size= null)
+        {
+            var len = 0L;
+            var contentLength = this.GetHttpResponseMessage().Content.Headers.ContentLength;
+            if (contentLength.HasValue)
+            {
+                len = contentLength.Value - this.InnerStream.Position;
+            }
+            else
+            {
+                len = size.GetValueOrDefault(1024*10);
+            }
+            len = Math.Min(len, size.GetValueOrDefault(len));
+
+
+            var buff = new byte[len];
+            this.InnerStream.Read(buff, 0, buff.Length);
+            //should this be on next tick?
+
+            var nb = new NodeBuffer(this.nodeHttpRequest.Require);
+            nb.InnerBuffer = buff;
+            return nb;
+        }
+
+        //  public object bytes { get; set; }
+        public string httpVersion { get; set; }
+        public PropertyBag  headers { get; set; }
+
+        public PropertyBag rawHeaders
+        {
+            get { return this.headers; }
+        }
+
+        public int statusCode { get; set; }
+
+        public string method
+        {
+            get { return this.nodeHttpRequest.RequestMessage.Method.Method; }
+            
+        }
+        public string url
+        {
+            get { return this.nodeHttpRequest.RequestMessage.RequestUri.ToString(); }
+
+        }
+        public string statusMessage
+        {
+            get { return this.GetHttpResponseMessage().ReasonPhrase; }
+
+        }
+        //public  long length
+        //{
+        //    get
+        //    {
+        //        if (resp.IsCompleted && resp.Result.Content != null && resp.Result.Content.Headers.ContentLength.HasValue)
+        //        {
+        //            return resp.Result.Content.Headers.ContentLength.Value;
+        //        }
+        //        if (InnerStream != null && InnerStream.CanSeek)
+        //        {
+        //            return InnerStream.Length;
+        //        }
+        //        return 1024*4;
+        //    }
+        //}
+        public Stream InnerStream { get; set; }
         public void InitEvents()
         {
             resp.Result.Content.ReadAsStreamAsync().ContinueWith(x =>
@@ -91,11 +176,27 @@ namespace ClearScript.NodeEmulation
             {
                 if (_pipes != null)
                 {
+                    while (true)
+                    {
+
+                        var nb = this.readNodeBuffer();
+                        if (nb.InnerBuffer.Length == 0)
+                        {
+                            break;
+                        }
+                        var jb = nb.CreateJsWrapper();
+                        foreach (var pipe in _pipes)
+                        {
+
+                            //nodeHttpRequest.Require.Engine.Execute("debugger;");
+                            pipe.write(jb);
+                           
+                        }
+                    }
                     foreach (var pipe in _pipes)
                     {
-                        //nodeHttpRequest.Require.Engine.Execute("debugger;");
-                        pipe.write(this.JsWrapper);
-                        pipe.end();
+
+                       pipe.end();
                     }
                     _pipes.Clear();
                 }
@@ -106,7 +207,24 @@ namespace ClearScript.NodeEmulation
         //todo .. rework as chunked
         private void OnData()
         {
-            emit("data", this.JsWrapper);
+
+            if (this.hasEvent("data"))
+            {
+                while (true)
+                {
+
+                    var nb = this.readNodeBuffer();
+                    if (nb.InnerBuffer.Length == 0)
+                    {
+                        break;
+                    }
+                    var jb = nb.CreateJsWrapper();
+                    emit("data", jb);    
+                   
+                }
+               
+            }
+            
 
             if (hasEvent("json"))
             {
@@ -116,9 +234,9 @@ namespace ClearScript.NodeEmulation
                     try
                     {
                       
-                            using (var stream = resp.Content.ReadAsStreamAsync().Result)
+                           // using (var stream = resp.Content.ReadAsStreamAsync().Result)
                             {
-                                var sr = new StreamReader(stream);
+                                var sr = new StreamReader(InnerStream);
 
                                 var ser = new JsonSerializer();
                                 ser.Converters.Add(new ExpandoObjectConverter());
@@ -141,10 +259,7 @@ namespace ClearScript.NodeEmulation
         }
 
         private List<dynamic> _pipes; 
-        public byte[] read(int? size = null)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         public dynamic pipe(dynamic destinationStream, dynamic options = null)
         {
